@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: README
+    url: https://github.com/ehsanmsb/mkdocs-mcp/blob/main/README.md
+    about: Start here for local setup, configuration, tools, auth, tests, and deployment
+  - name: Helm chart docs
+    url: https://github.com/ehsanmsb/mkdocs-mcp/blob/main/charts/mkdocs-mcp/README.md
+    about: Check chart values and Kubernetes/OpenShift deployment notes

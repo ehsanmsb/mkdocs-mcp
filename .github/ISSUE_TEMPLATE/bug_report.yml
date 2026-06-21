@@ -1,0 +1,116 @@
+name: Bug report
+description: Report an MCP server bug, regression, or unexpected behavior
+title: "bug: "
+labels:
+  - bug
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting this. Please share enough detail for us to reproduce the problem safely.
+
+  - type: input
+    id: summary
+    attributes:
+      label: Summary
+      description: Short description of the problem
+      placeholder: search_docs returns stale results after reindex
+    validations:
+      required: true
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options:
+        - MCP tools / protocol
+        - Indexing / parsing
+        - Search / ranking
+        - Source adapters
+        - Authentication / authorization
+        - Configuration
+        - Observability / metrics
+        - Helm chart / Kubernetes
+        - Container image
+        - CI / release
+        - Documentation
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: configuration
+    attributes:
+      label: Configuration
+      description: Minimal relevant environment variables, Helm values, or command line used to reproduce. Remove secrets before submitting.
+      render: yaml
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      description: Include commands, MCP tool calls, fixture docs, or request payloads if possible.
+      value: |
+        1.
+        2.
+        3.
+    validations:
+      required: true
+
+  - type: textarea
+    id: observed_behavior
+    attributes:
+      label: Actual behavior
+      description: What happened?
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected_behavior
+    attributes:
+      label: Expected behavior
+      description: What did you expect to happen?
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Relevant logs or error output
+      description: Paste server, test, Helm, or container errors here. Remove secrets before submitting.
+      render: text
+
+  - type: input
+    id: version
+    attributes:
+      label: mkdocs-mcp version
+      placeholder: v0.1.0, image tag, or commit SHA
+    validations:
+      required: true
+
+  - type: input
+    id: python_version
+    attributes:
+      label: Python version
+      placeholder: "3.12"
+
+  - type: input
+    id: deployment
+    attributes:
+      label: Deployment
+      description: How are you running mkdocs-mcp?
+      placeholder: local uv, Docker, Helm on Kubernetes/OpenShift, other
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: confirmations
+    attributes:
+      label: Confirmations
+      options:
+        - label: I removed passwords, API keys, bearer tokens, cookies, and private repository URLs from this report
+          required: true
+        - label: I searched existing issues before opening this report
+          required: true

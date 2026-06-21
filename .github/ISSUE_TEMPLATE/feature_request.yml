@@ -1,0 +1,68 @@
+name: Feature request
+description: Propose a new MCP capability, source adapter, search behavior, or deployment feature
+title: "feat: "
+labels:
+  - enhancement
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for the idea. Please describe the user need and how it should fit into the MCP server.
+
+  - type: input
+    id: summary
+    attributes:
+      label: Summary
+      placeholder: add a Confluence source adapter
+    validations:
+      required: true
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem to solve
+      description: What workflow is blocked, slow, or difficult today?
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed solution
+      description: Describe the ideal tool, configuration, source adapter, search behavior, or chart behavior.
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: Mention workarounds or other designs you considered.
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options:
+        - MCP tools / protocol
+        - Indexing / parsing
+        - Search / ranking
+        - Source adapters
+        - Authentication / authorization
+        - Configuration
+        - Observability / metrics
+        - Helm chart / Kubernetes
+        - Container image
+        - CI / release
+        - Documentation
+        - Other
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: confirmations
+    attributes:
+      label: Confirmations
+      options:
+        - label: I searched existing issues before opening this request
+          required: true

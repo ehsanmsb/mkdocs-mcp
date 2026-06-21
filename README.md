@@ -111,6 +111,49 @@ pytest
 ruff check src tests
 ```
 
+## Contributing
+
+See [docs/CONTRIBUTING.md](docs/CONTRIBUTING.md) for development setup,
+validation, pull request expectations, and commit message rules.
+
+## Releases
+
+This repository uses Semantic Versioning with `semantic-release` and
+Conventional Commits.
+
+When a branch is merged into `main`, the release workflow analyzes the commits
+since the previous release, calculates the next version, creates the Git tag
+automatically, builds Python and Helm package artifacts, publishes a GitHub
+release with generated release notes, and pushes a GHCR image. The tag starts
+with `v` (for example, `v1.2.3`).
+
+The release image is published to `ghcr.io/<owner>/<repo>` with these tags:
+
+- `<version>` such as `1.2.3`
+- `<major>.<minor>` such as `1.2`
+- `sha-<commit-sha>`
+- `latest`
+
+Release notes are grouped into:
+
+- `Features`
+- `Bug Fixes`
+- `Performance`
+- `Refactoring`
+
+Low-signal commit types such as `docs:`, `test:`, `chore:`, `ci:`, and
+`build:` are hidden from published release notes unless they include a breaking
+change.
+
+Use standard Conventional Commit syntax:
+
+- `feat: add source adapter` -> minor release
+- `fix: handle empty search index` -> patch release
+- `perf: reduce indexing allocations` -> patch release
+- `refactor: split parser metadata handling` -> no version bump, but shown in release notes
+- `feat!: change configuration names` -> major release
+- `BREAKING CHANGE: configuration names changed` in the commit footer -> major release
+
 ## Deployment
 
 Container + Helm chart for OKD/OpenShift live in `charts/mkdocs-mcp/`.

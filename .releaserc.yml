@@ -1,0 +1,77 @@
+branches:
+  - main
+
+tagFormat: v${version}
+
+plugins:
+  - - "@semantic-release/commit-analyzer"
+    - preset: conventionalcommits
+      releaseRules:
+        - breaking: true
+          release: major
+        - type: feat
+          release: minor
+        - type: fix
+          release: patch
+        - type: perf
+          release: patch
+  - - "@semantic-release/release-notes-generator"
+    - preset: conventionalcommits
+      presetConfig:
+        types:
+          - type: feat
+            section: Features
+            hidden: false
+          - type: fix
+            section: Bug Fixes
+            hidden: false
+          - type: perf
+            section: Performance
+            hidden: false
+          - type: refactor
+            section: Refactoring
+            hidden: false
+          - type: docs
+            hidden: true
+          - type: test
+            hidden: true
+          - type: chore
+            hidden: true
+          - type: ci
+            hidden: true
+          - type: build
+            hidden: true
+          - type: style
+            hidden: true
+      writerOpts:
+        commitsSort:
+          - subject
+          - scope
+  - - "@semantic-release/exec"
+    - prepareCmd: |
+        set -eu
+        version="${nextRelease.version}"
+
+        python -c "import re; from pathlib import Path; p = Path('pyproject.toml'); s = p.read_text(); p.write_text(re.sub(r'^version = \".*\"', 'version = \"$version\"', s, count=1, flags=re.M))"
+        rm -rf dist
+        python -m build
+        helm package charts/mkdocs-mcp --version "$version" --app-version "$version" --destination dist
+      publishCmd: |
+        set -eu
+        version="${nextRelease.version}"
+        major_minor="$(printf '%s' "$version" | awk -F. '{print $1 "." $2}')"
+
+        docker buildx build \
+          --push \
+          --label "org.opencontainers.image.title=mkdocs-mcp" \
+          --label "org.opencontainers.image.source=https://github.com/$GITHUB_REPOSITORY" \
+          --label "org.opencontainers.image.revision=$GITHUB_SHA" \
+          --label "org.opencontainers.image.version=$version" \
+          --tag "$IMAGE_NAME:$version" \
+          --tag "$IMAGE_NAME:$major_minor" \
+          --tag "$IMAGE_NAME:sha-$GITHUB_SHA" \
+          --tag "$IMAGE_NAME:latest" \
+          .
+  - - "@semantic-release/github"
+    - assets:
+        - path: dist/*
