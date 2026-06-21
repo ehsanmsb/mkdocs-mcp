@@ -1,0 +1,16 @@
+replicaCount: 1
+
+config:
+  baseUrl: https://docs.staging.example.com
+  mkdocsConfig: mkdocs.staging.yaml
+  reindexIntervalMinutes: 15
+  logLevel: DEBUG
+
+route:
+  host: mkdocs-mcp.apps.staging.example.com
+
+persistence:
+  size: 1Gi
+
+podDisruptionBudget:
+  enabled: false

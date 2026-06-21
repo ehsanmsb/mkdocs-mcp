@@ -1,0 +1,24 @@
+MkDocs documentation MCP server deployed.
+
+{{- if .Values.route.enabled }}
+MCP endpoint (streamable-http):
+  https://{{ .Values.route.host }}{{ "/mcp" }}
+{{- else }}
+Service (cluster-internal):
+  http://{{ include "mkdocs-mcp.fullname" . }}.{{ .Release.Namespace }}.svc:{{ .Values.service.port }}/mcp
+{{- end }}
+
+Connect from Claude CLI (.mcp.json):
+  {
+    "mcpServers": {
+      "mkdocs-docs": {
+        "type": "http",
+        "url": "https://{{ .Values.route.host }}/mcp",
+        "headers": { "Authorization": "Bearer <token>" }
+      }
+    }
+  }
+
+Probes:   /health (live)  /ready (ready)
+Metrics:  :{{ .Values.service.metricsPort }}/metrics
+Check:    kubectl -n {{ .Release.Namespace }} rollout status deploy/{{ include "mkdocs-mcp.fullname" . }}

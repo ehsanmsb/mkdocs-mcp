@@ -1,0 +1,133 @@
+# Default values for mkdocs-mcp.
+replicaCount: 2
+
+image:
+  repository: registry.example.com/mkdocs-mcp
+  tag: ""              # defaults to .Chart.AppVersion
+  pullPolicy: IfNotPresent
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+# --- application configuration (-> ConfigMap, MKDOCS_MCP_* env) ---------------
+config:
+  serverName: MkDocs Docs                  # surfaced to MCP clients
+  sourceMode: git                         # git | search_index | local
+  gitUrl: https://gitlab.example.com/org/docs.git
+  gitBranch: main
+  gitUsername: oauth2                      # GitLab PAT: oauth2; GitHub PAT: x-access-token
+
+  mkdocsConfig: mkdocs.yml
+  docsSubdir: docs
+  searchIndexUrl: https://docs.example.com/search/search_index.json
+  baseUrl: https://docs.example.com
+  repoWebUrl: https://gitlab.example.com/org/docs
+  editBranch: main
+  reindexIntervalMinutes: 30
+  embeddingsEnabled: false
+  embeddingsModel: BAAI/bge-m3
+  rateLimitEnabled: true
+  rateLimitPerSecond: 5
+  rateLimitBurst: 20
+  logLevel: INFO
+  logJson: true
+  metricsEnabled: true
+
+# --- secrets (-> Secret). Prefer ExternalSecret in real clusters. --------
+secrets:
+  authMode: bearer                        # none | bearer
+  gitToken: ""                            # for private repo clone
+  bearerTokens: ""                        # comma-separated
+  adminTokens: ""                         # comma-separated (rebuild_index)
+  # If set, the chart will NOT create a Secret and will use this one instead.
+  existingSecret: ""
+
+service:
+  type: ClusterIP
+  port: 8000
+  metricsPort: 9000
+
+# OpenShift Route (preferred over Ingress on OKD).
+route:
+  enabled: true
+  host: mkdocs-mcp.apps.example.com
+  tls:
+    enabled: true
+    termination: edge
+    insecureEdgeTerminationPolicy: Redirect
+
+ingress:
+  enabled: false
+  className: ""
+  host: ""
+  annotations: {}
+  tls: []
+
+# Index store + git clone. Each replica builds its own index from git in
+# seconds, so this is OPTIONAL (warm-restart cache only). Default emptyDir keeps
+# replicas independent and HA-safe. Only enable a PVC with replicaCount=1 (RWO
+# cannot be multi-mounted); for multi-replica warm caching switch to a
+# StatefulSet with volumeClaimTemplates, or use an RWX storage class.
+persistence:
+  enabled: false
+  accessMode: ReadWriteOnce
+  size: 1Gi
+  storageClass: ""
+
+resources:
+  requests:
+    cpu: 250m
+    memory: 512Mi
+  limits:
+    cpu: "1"
+    memory: 1Gi
+
+autoscaling:
+  enabled: false
+  minReplicas: 2
+  maxReplicas: 5
+  targetCPUUtilizationPercentage: 75
+
+podDisruptionBudget:
+  enabled: true
+  minAvailable: 1
+
+serviceMonitor:
+  enabled: true
+  interval: 30s
+
+networkPolicy:
+  enabled: true
+  # CIDRs / selectors allowed to reach the MCP port (e.g. the ingress controller).
+  ingressFrom: []
+
+# Optional CronJob that triggers rebuild_index out-of-band (belt & suspenders;
+# the server already self-schedules via reindexIntervalMinutes).
+reindexCronJob:
+  enabled: false
+  schedule: "*/30 * * * *"
+
+# OpenShift-friendly: do NOT pin runAsUser; let the SCC assign the UID.
+podSecurityContext:
+  runAsNonRoot: true
+  seccompProfile:
+    type: RuntimeDefault
+securityContext:
+  allowPrivilegeEscalation: false
+  readOnlyRootFilesystem: true
+  capabilities:
+    drop: ["ALL"]
+
+nodeSelector: {}
+tolerations: []
+# Spread replicas across nodes for HA.
+affinity:
+  podAntiAffinity:
+    preferredDuringSchedulingIgnoredDuringExecution:
+      - weight: 100
+        podAffinityTerm:
+          topologyKey: kubernetes.io/hostname
+          labelSelector:
+            matchLabels:
+              app.kubernetes.io/name: mkdocs-mcp

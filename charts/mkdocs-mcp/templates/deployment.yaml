@@ -1,0 +1,66 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "mkdocs-mcp.fullname" . }}
+  labels: {{- include "mkdocs-mcp.labels" . | nindent 4 }}
+spec:
+  {{- if not .Values.autoscaling.enabled }}
+  replicas: {{ .Values.replicaCount }}
+  {{- end }}
+  selector:
+    matchLabels: {{- include "mkdocs-mcp.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels: {{- include "mkdocs-mcp.selectorLabels" . | nindent 8 }}
+      annotations:
+        checksum/config: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets: {{- toYaml . | nindent 8 }}
+      {{- end }}
+      securityContext: {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      {{- with .Values.affinity }}
+      affinity: {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector: {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations: {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: mkdocs-mcp
+          image: {{ include "mkdocs-mcp.image" . }}
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          securityContext: {{- toYaml .Values.securityContext | nindent 12 }}
+          ports:
+            - { name: http, containerPort: 8000 }
+            - { name: metrics, containerPort: 9000 }
+          envFrom:
+            - configMapRef: { name: {{ include "mkdocs-mcp.fullname" . }} }
+            - secretRef: { name: {{ include "mkdocs-mcp.secretName" . }} }
+          startupProbe:
+            httpGet: { path: /ready, port: http }
+            periodSeconds: 5
+            failureThreshold: 30          # allow up to ~150s for first index build
+          livenessProbe:
+            httpGet: { path: /health, port: http }
+            periodSeconds: 15
+          readinessProbe:
+            httpGet: { path: /ready, port: http }
+            periodSeconds: 10
+          resources: {{- toYaml .Values.resources | nindent 12 }}
+          volumeMounts:
+            - { name: data, mountPath: /data }
+            - { name: tmp, mountPath: /tmp }
+      volumes:
+        - name: tmp
+          emptyDir: {}
+        {{- if .Values.persistence.enabled }}
+        - name: data
+          persistentVolumeClaim:
+            claimName: {{ include "mkdocs-mcp.fullname" . }}
+        {{- else }}
+        - name: data
+          emptyDir: {}
+        {{- end }}

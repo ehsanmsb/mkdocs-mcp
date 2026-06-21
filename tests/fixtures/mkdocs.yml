@@ -1,0 +1,13 @@
+site_name: Test Docs
+docs_dir: docs
+nav:
+  - Platform:
+    - Networking:
+      - platform/networking/expose-service.md
+    - ArgoCD:
+      - platform/argocd/user-guide.md
+      - Runbooks:
+        - platform/argocd/runbooks/migrate-repository.md
+markdown_extensions:
+  - pymdownx.emoji:
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg

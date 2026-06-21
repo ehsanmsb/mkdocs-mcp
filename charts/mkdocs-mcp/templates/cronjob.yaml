@@ -1,0 +1,39 @@
+{{- if .Values.reindexCronJob.enabled }}
+{{- /*
+Out-of-band reindex trigger. The server self-schedules reindexing via
+MKDOCS_MCP_REINDEX_INTERVAL_MINUTES, so this is optional. It calls the admin
+rebuild_index tool over MCP using an admin token from the Secret.
+*/ -}}
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: {{ include "mkdocs-mcp.fullname" . }}-reindex
+  labels: {{- include "mkdocs-mcp.labels" . | nindent 4 }}
+spec:
+  schedule: {{ .Values.reindexCronJob.schedule | quote }}
+  concurrencyPolicy: Forbid
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          restartPolicy: Never
+          containers:
+            - name: trigger
+              image: curlimages/curl:8.8.0
+              env:
+                - name: ADMIN_TOKEN
+                  valueFrom:
+                    secretKeyRef:
+                      name: {{ include "mkdocs-mcp.secretName" . }}
+                      key: MKDOCS_MCP_ADMIN_TOKENS
+              command: ["/bin/sh", "-c"]
+              args:
+                - |
+                  TOKEN=$(echo "$ADMIN_TOKEN" | cut -d, -f1)
+                  curl -fsS -X POST \
+                    http://{{ include "mkdocs-mcp.fullname" . }}:{{ .Values.service.port }}/mcp \
+                    -H "content-type: application/json" \
+                    -H "accept: application/json, text/event-stream" \
+                    -H "authorization: Bearer $TOKEN" \
+                    -d '{"jsonrpc":"2.0","id":1,"method":"tools/call","params":{"name":"rebuild_index","arguments":{}}}'
+{{- end }}

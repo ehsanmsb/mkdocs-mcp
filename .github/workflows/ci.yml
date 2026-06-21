@@ -1,0 +1,111 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+    tags: ["v*"]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: write   # push image to GitHub Container Registry (ghcr.io)
+
+env:
+  IMAGE_NAME: ghcr.io/${{ github.repository }}
+
+jobs:
+  test:
+    name: Lint & test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install uv
+        run: pip install --no-cache-dir uv
+      - name: Install project (dev extras)
+        run: uv pip install --system -e '.[dev]'
+      - name: Ruff (lint)
+        run: ruff check src tests
+      - name: Ruff (format check)
+        run: ruff format --check src tests
+      - name: Mypy (advisory)
+        run: mypy src || true
+      - name: Pytest
+        run: pytest -q
+
+  helm:
+    name: Helm lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: azure/setup-helm@v4
+      - name: Helm lint
+        run: helm lint charts/mkdocs-mcp
+
+  docker:
+    name: Build & push image
+    runs-on: ubuntu-latest
+    needs: [test, helm]
+    # Only publish from the canonical repo on main/tags (not from PRs/forks).
+    if: github.event_name != 'pull_request'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Image metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.IMAGE_NAME }}
+          tags: |
+            type=sha,format=long
+            type=ref,event=branch
+            type=semver,pattern={{version}}
+            type=raw,value=latest,enable={{is_default_branch}}
+      - name: Build & push
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+      - name: Trivy scan (non-blocking)
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          image-ref: ${{ env.IMAGE_NAME }}:sha-${{ github.sha }}
+          severity: HIGH,CRITICAL
+          exit-code: "0"
+
+  # Optional: deploy to OKD/OpenShift. Runs only on manual dispatch and needs a
+  # base64-encoded kubeconfig in the `KUBE_CONFIG` repo secret. Safe to delete if
+  # you deploy by other means.
+  deploy:
+    name: Deploy (manual)
+    runs-on: ubuntu-latest
+    needs: [docker]
+    if: github.event_name == 'workflow_dispatch'
+    environment: production
+    steps:
+      - uses: actions/checkout@v4
+      - uses: azure/setup-helm@v4
+      - name: Configure kubeconfig
+        run: |
+          mkdir -p "$HOME/.kube"
+          echo "${{ secrets.KUBE_CONFIG }}" | base64 -d > "$HOME/.kube/config"
+      - name: Helm upgrade
+        run: |
+          helm upgrade --install mkdocs-mcp charts/mkdocs-mcp \
+            -n docs-mcp --create-namespace \
+            -f charts/mkdocs-mcp/values-production.yaml \
+            --set image.repository=${{ env.IMAGE_NAME }} \
+            --set image.tag=sha-${{ github.sha }}

@@ -1,0 +1,23 @@
+replicaCount: 3
+
+config:
+  baseUrl: https://docs.example.com
+  mkdocsConfig: mkdocs.production.yaml
+  reindexIntervalMinutes: 30
+  logLevel: INFO
+
+route:
+  host: mkdocs-mcp.apps.example.com
+
+autoscaling:
+  enabled: true
+  minReplicas: 3
+  maxReplicas: 6
+
+podDisruptionBudget:
+  enabled: true
+  minAvailable: 2
+
+# Use an externally managed secret in production (Vault / ExternalSecrets).
+secrets:
+  existingSecret: mkdocs-mcp-auth

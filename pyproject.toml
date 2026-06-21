@@ -1,0 +1,60 @@
+[project]
+name = "mkdocs-mcp"
+version = "0.1.0"
+description = "Generic, configurable MCP server that makes any MkDocs documentation site searchable and explorable from MCP clients."
+readme = "README.md"
+requires-python = ">=3.12"
+license = { text = "MIT" }
+dependencies = [
+    "fastmcp>=2.3.0",
+    "httpx>=0.27",
+    "pydantic>=2.6",
+    "pydantic-settings>=2.2",
+    "structlog>=24.1",
+    "prometheus-client>=0.20",
+    "markdown-it-py>=3.0",
+    "python-frontmatter>=1.1",
+    "markdown>=3.6",
+    "rank-bm25>=0.2.2",
+    "pyyaml>=6.0",
+    "uvicorn>=0.29",
+]
+
+[project.optional-dependencies]
+# Semantic / hybrid search. Self-hosted, multilingual embeddings — no external
+# embedding API required. Kept optional because the wheels are heavy.
+vectors = [
+    "sentence-transformers>=2.7",
+    "numpy>=1.26",
+]
+dev = [
+    "pytest>=8.0",
+    "pytest-asyncio>=0.23",
+    "ruff>=0.4",
+    "mypy>=1.10",
+]
+
+[project.scripts]
+mkdocs-mcp = "mkdocs_mcp.main:run"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/mkdocs_mcp"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM"]
+
+[tool.mypy]
+python_version = "3.12"
+ignore_missing_imports = true

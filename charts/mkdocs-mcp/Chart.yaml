@@ -1,0 +1,6 @@
+apiVersion: v2
+name: mkdocs-mcp
+description: Generic MCP server that makes a MkDocs documentation site searchable over streamable-http.
+type: application
+version: 0.1.0
+appVersion: "0.1.0"
