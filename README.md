@@ -1,5 +1,15 @@
 # MkDocs MCP Server
 
+[![PyPI Version](https://img.shields.io/pypi/v/mkdocs-mcp)](https://pypi.org/project/mkdocs-mcp/)
+[![PyPI - Downloads](https://img.shields.io/pypi/dm/mkdocs-mcp)](https://pypi.org/project/mkdocs-mcp/)
+[![PePy - Total Downloads](https://static.pepy.tech/personalized-badge/mkdocs-mcp?period=total&units=international_system&left_color=grey&right_color=blue&left_text=Total%20Downloads)](https://pepy.tech/projects/mkdocs-mcp)
+[![Run Tests](https://github.com/ehsanmsb/mkdocs-mcp/actions/workflows/ci.yml/badge.svg)](https://github.com/ehsanmsb/mkdocs-mcp/actions/workflows/ci.yml)
+[![Release](https://github.com/ehsanmsb/mkdocs-mcp/actions/workflows/release.yml/badge.svg)](https://github.com/ehsanmsb/mkdocs-mcp/actions/workflows/release.yml)
+[![GitHub release (latest by date)](https://img.shields.io/github/v/release/ehsanmsb/mkdocs-mcp)](https://github.com/ehsanmsb/mkdocs-mcp/releases)
+[![GHCR image](https://img.shields.io/badge/ghcr.io-mkdocs--mcp-blue)](https://github.com/ehsanmsb/mkdocs-mcp/pkgs/container/mkdocs-mcp)
+[![License](https://img.shields.io/github/license/ehsanmsb/mkdocs-mcp)](LICENSE)
+[![Docs](https://img.shields.io/badge/docs-markdown-blue)](docs/)
+
 A generic, configurable [Model Context Protocol](https://modelcontextprotocol.io)
 server that makes **any [MkDocs](https://www.mkdocs.org/) documentation site
 searchable and explorable** from MCP clients (Claude CLI, IDEs, …).
