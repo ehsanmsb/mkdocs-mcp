@@ -4,6 +4,7 @@ Anchor generation reuses python-markdown's own ``toc`` slugify so that the
 ``#fragment`` we emit matches the anchors MkDocs actually renders (python-mark
 down is what MkDocs uses under the hood).
 """
+
 from __future__ import annotations
 
 import re

@@ -4,6 +4,7 @@ Summarization is intentionally client-side: these tools return structured
 content + outlines for the calling LLM to summarize. We do not embed an LLM in
 the server (no extra model dependency, no token cost, no external API).
 """
+
 from __future__ import annotations
 
 from fastmcp import FastMCP
@@ -32,9 +33,7 @@ def register(mcp: FastMCP, ctx: AppContext) -> None:
         d = ctx.store.get_doc(page_id)
         if not d:
             return None
-        sections = [
-            {"heading": s.heading, "text": s.text} for s in ctx.store.sections_of(page_id)
-        ]
+        sections = [{"heading": s.heading, "text": s.text} for s in ctx.store.sections_of(page_id)]
         return PageOutline(
             page_id=d.page_id,
             title=d.title,

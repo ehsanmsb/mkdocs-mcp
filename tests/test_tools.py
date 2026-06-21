@@ -1,4 +1,5 @@
 """Tool contract tests via an in-memory FastMCP client."""
+
 import pytest
 from fastmcp import Client, FastMCP
 
@@ -19,12 +20,25 @@ async def test_tools_registered(client):
     async with client:
         tools = {t.name for t in await client.list_tools()}
     expected = {
-        "search_docs", "search_section", "semantic_search",
-        "get_page", "get_section", "list_categories", "list_pages", "browse_tree",
-        "summarize_page", "related_documents", "suggest_reading",
-        "recent_changes", "find_runbooks", "find_examples",
-        "find_by_topic", "find_argocd_docs",
-        "rebuild_index", "health_check", "get_statistics",
+        "search_docs",
+        "search_section",
+        "semantic_search",
+        "get_page",
+        "get_section",
+        "list_categories",
+        "list_pages",
+        "browse_tree",
+        "summarize_page",
+        "related_documents",
+        "suggest_reading",
+        "recent_changes",
+        "find_runbooks",
+        "find_examples",
+        "find_by_topic",
+        "find_argocd_docs",
+        "rebuild_index",
+        "health_check",
+        "get_statistics",
     }
     assert expected <= tools
 

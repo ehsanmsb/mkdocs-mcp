@@ -7,6 +7,7 @@ The server is generic: no organization-, site-, or project-specific values are
 hardcoded. Anything site-specific (URLs, repo, tenant segments, topic taxonomy,
 server identity) is supplied here.
 """
+
 from __future__ import annotations
 
 from typing import Literal
@@ -100,7 +101,7 @@ class Settings(BaseSettings):
     # bearer -> static bearer token(s) via FastMCP StaticTokenVerifier
     auth_mode: Literal["none", "bearer"] = "bearer"
     bearer_tokens: str = ""  # comma-separated; normal scope
-    admin_tokens: str = ""   # comma-separated; admin scope (rebuild_index)
+    admin_tokens: str = ""  # comma-separated; admin scope (rebuild_index)
 
     # ---- Rate limiting (FastMCP RateLimitingMiddleware) ----------------
     rate_limit_enabled: bool = True

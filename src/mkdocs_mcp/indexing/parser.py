@@ -8,6 +8,7 @@ Splitting a page into heading-scoped sections is application logic (no library
 produces exactly this chunking), so it is implemented here on top of the
 library token stream.
 """
+
 from __future__ import annotations
 
 import frontmatter

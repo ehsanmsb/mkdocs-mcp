@@ -3,6 +3,7 @@
 MkDocs config files contain ``!!python/name:...`` tags (in markdown_extensions),
 so we register a permissive loader that ignores unknown YAML tags.
 """
+
 from __future__ import annotations
 
 from typing import Any

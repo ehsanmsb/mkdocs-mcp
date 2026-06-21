@@ -3,6 +3,7 @@
 A source yields the raw corpus that the indexer parses. Keeping this behind a
 Protocol lets us swap git / search_index / local without touching the tools.
 """
+
 from __future__ import annotations
 
 from dataclasses import dataclass, field

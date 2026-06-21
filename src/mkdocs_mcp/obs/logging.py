@@ -1,4 +1,5 @@
 """Structured logging (JSON to stdout for OKD log collection)."""
+
 from __future__ import annotations
 
 import logging
@@ -21,9 +22,7 @@ def setup_logging(level: str = "INFO", json: bool = True) -> None:
         structlog.processors.format_exc_info,
     ]
     processors.append(
-        structlog.processors.JSONRenderer()
-        if json
-        else structlog.dev.ConsoleRenderer()
+        structlog.processors.JSONRenderer() if json else structlog.dev.ConsoleRenderer()
     )
     structlog.configure(
         processors=processors,

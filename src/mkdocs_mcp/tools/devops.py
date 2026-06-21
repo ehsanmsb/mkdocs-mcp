@@ -6,6 +6,7 @@ vocabulary, plus thin ``find_<topic>_docs`` aliases generated from
 add no logic of their own and are fully configuration-driven — no topic names
 are hardcoded here.
 """
+
 from __future__ import annotations
 
 from fastmcp import FastMCP

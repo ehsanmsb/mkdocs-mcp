@@ -4,6 +4,7 @@ prometheus-client provides the registry/exposition; FastMCP provides the
 middleware hook. The only glue is this small middleware (FastMCP ships timing
 and logging middleware but no Prometheus integration).
 """
+
 from __future__ import annotations
 
 import time
@@ -11,9 +12,7 @@ import time
 from fastmcp.server.middleware import Middleware, MiddlewareContext
 from prometheus_client import Counter, Gauge, Histogram, start_http_server
 
-TOOL_CALLS = Counter(
-    "mkdocs_mcp_tool_calls_total", "MCP tool invocations.", ["tool", "status"]
-)
+TOOL_CALLS = Counter("mkdocs_mcp_tool_calls_total", "MCP tool invocations.", ["tool", "status"])
 TOOL_LATENCY = Histogram(
     "mkdocs_mcp_tool_latency_seconds",
     "MCP tool latency.",

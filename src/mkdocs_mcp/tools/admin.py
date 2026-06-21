@@ -1,4 +1,5 @@
 """Administration tools: rebuild_index, health_check, get_statistics."""
+
 from __future__ import annotations
 
 import time

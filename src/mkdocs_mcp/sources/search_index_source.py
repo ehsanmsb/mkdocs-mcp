@@ -5,6 +5,7 @@ index is flat (one entry per page + per section), so we reconstruct lightweight
 markdown per page and let the normal parser re-split it. Git history and exact
 code-block languages are not available from this source.
 """
+
 from __future__ import annotations
 
 from collections import defaultdict

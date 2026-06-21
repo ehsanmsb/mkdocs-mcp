@@ -9,6 +9,7 @@ Both embedding and similarity search use sentence-transformers' own utilities
 hand-written vector math. Imported lazily so the core server never pays for the
 heavy dependency.
 """
+
 from __future__ import annotations
 
 from ..obs.logging import get_logger

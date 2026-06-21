@@ -8,6 +8,7 @@ For real deployments you can swap ``build_verifier`` for any FastMCP provider
 (``JWTVerifier``, the Keycloak/GitHub/Google OAuth providers, …) without
 touching the tools.
 """
+
 from __future__ import annotations
 
 from fastmcp.server.auth.providers.jwt import StaticTokenVerifier

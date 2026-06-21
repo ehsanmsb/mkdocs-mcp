@@ -1,4 +1,5 @@
 """Discovery tools: recent_changes, find_runbooks, find_examples."""
+
 from __future__ import annotations
 
 from fastmcp import FastMCP

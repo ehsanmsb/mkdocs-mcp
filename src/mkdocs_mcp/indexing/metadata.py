@@ -18,6 +18,7 @@ it entirely by pointing ``topics_file`` at your own YAML:
         paths: ["/my-topic/"]
         keywords: ["some phrase", "another"]
 """
+
 from __future__ import annotations
 
 from pathlib import Path

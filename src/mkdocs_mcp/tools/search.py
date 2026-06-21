@@ -1,4 +1,5 @@
 """Search tools: search_docs, search_section, semantic_search."""
+
 from __future__ import annotations
 
 from fastmcp import FastMCP

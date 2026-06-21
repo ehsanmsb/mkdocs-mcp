@@ -9,6 +9,7 @@ Cross-cutting concerns are handled by FastMCP's own building blocks:
   - metrics             -> PrometheusMiddleware (thin local glue)
   - health/ready routes -> mcp.custom_route
 """
+
 from __future__ import annotations
 
 import asyncio

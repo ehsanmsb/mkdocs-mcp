@@ -1,4 +1,5 @@
 """In-memory corpus store + JSON snapshot persistence for warm restarts."""
+
 from __future__ import annotations
 
 import json

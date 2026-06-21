@@ -7,6 +7,7 @@ We only add the thin glue BM25 libraries leave to the caller:
   - title/heading emphasis (by repeating title tokens in the indexed document,
     which BM25Okapi scores natively via term frequency).
 """
+
 from __future__ import annotations
 
 import re

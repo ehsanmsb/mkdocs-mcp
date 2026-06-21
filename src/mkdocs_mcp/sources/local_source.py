@@ -1,4 +1,5 @@
 """Read docs from an already-present checkout (dev + tests + git pod volume)."""
+
 from __future__ import annotations
 
 import os

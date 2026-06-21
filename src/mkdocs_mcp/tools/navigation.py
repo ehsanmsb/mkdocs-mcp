@@ -1,4 +1,5 @@
 """Navigation tools: get_page, get_section, list_categories, list_pages, browse_tree."""
+
 from __future__ import annotations
 
 from fastmcp import FastMCP
@@ -48,9 +49,7 @@ def register(mcp: FastMCP, ctx: AppContext) -> None:
                     url=s.url,
                     text=s.text,
                     prev_heading=sections[idx - 1].heading if idx > 0 else None,
-                    next_heading=(
-                        sections[idx + 1].heading if idx + 1 < len(sections) else None
-                    ),
+                    next_heading=(sections[idx + 1].heading if idx + 1 < len(sections) else None),
                 )
         return None
 

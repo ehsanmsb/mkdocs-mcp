@@ -2,6 +2,7 @@
 
 Also owns snapshot warm-load and the periodic re-index scheduler.
 """
+
 from __future__ import annotations
 
 import asyncio
@@ -56,9 +57,7 @@ class Indexer:
         corpus = await self.source.load()
         store = IndexStore()
         store.nav = (
-            Nav.from_config_text(corpus.nav_config_text)
-            if corpus.nav_config_text
-            else Nav.empty()
+            Nav.from_config_text(corpus.nav_config_text) if corpus.nav_config_text else Nav.empty()
         )
 
         for page in corpus.pages:

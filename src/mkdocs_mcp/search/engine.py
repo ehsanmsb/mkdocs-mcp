@@ -5,6 +5,7 @@ would risk serving stale hits after a reindex. If a corpus ever grows large
 enough to need it, enable FastMCP's ResponseCachingMiddleware instead of adding
 bespoke caching here.
 """
+
 from __future__ import annotations
 
 from dataclasses import dataclass
@@ -51,9 +52,7 @@ class SearchEngine:
             self.vocab = vocab
         self.bm25.build([(f"{s.page_title} {s.heading}", s.text) for s in store.sections])
         if self.cfg.embeddings_enabled:
-            self.vectors.build(
-                [f"{s.page_title}\n{s.heading}\n{s.text}" for s in store.sections]
-            )
+            self.vectors.build([f"{s.page_title}\n{s.heading}\n{s.text}" for s in store.sections])
         metrics.INDEX_PAGES.set(len(store.documents))
         metrics.INDEX_SECTIONS.set(len(store.sections))
 

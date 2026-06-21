@@ -2,6 +2,7 @@
 
 These guard against ranking regressions as the engine evolves.
 """
+
 import pytest
 
 from mkdocs_mcp.search.engine import Filters

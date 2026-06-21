@@ -4,6 +4,7 @@ Internal records (``Document``, ``Section``) are the indexed corpus.
 The ``*Result`` / ``*Hit`` models are the tool-facing schemas returned to MCP
 clients; keep them small and self-describing.
 """
+
 from __future__ import annotations
 
 from pydantic import BaseModel, Field

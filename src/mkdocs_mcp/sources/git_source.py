@@ -19,6 +19,7 @@ makes auth failures fail fast instead of hanging on a prompt.
 
 Uses the ``git`` CLI (already in the image) to avoid a heavy git dependency.
 """
+
 from __future__ import annotations
 
 import asyncio
@@ -93,8 +94,14 @@ class GitSource:
         docs_path = f"{self.cfg.docs_subdir}/{rel_path}"
         try:
             out = await _run(
-                "git", "-C", self.cfg.repo_dir, "log", "-1",
-                "--format=%aI%x09%an", "--", docs_path,
+                "git",
+                "-C",
+                self.cfg.repo_dir,
+                "log",
+                "-1",
+                "--format=%aI%x09%an",
+                "--",
+                docs_path,
             )
             if out.strip():
                 ts, _, author = out.strip().partition("\t")

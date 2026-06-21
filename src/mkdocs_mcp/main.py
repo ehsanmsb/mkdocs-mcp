@@ -1,4 +1,5 @@
 """Entrypoint: run the MkDocs documentation MCP server over streamable-http."""
+
 from __future__ import annotations
 
 import uvicorn
