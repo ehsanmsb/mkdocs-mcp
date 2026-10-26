@@ -9,12 +9,21 @@ import structlog
 from structlog.typing import Processor
 
 
+def _skip_duplicate_tool_error(record: logging.LogRecord) -> bool:
+    return not record.getMessage().startswith(("Error calling tool", "Invalid arguments for tool"))
+
+
 def setup_logging(level: str = "INFO", json: bool = True) -> None:
     logging.basicConfig(
         format="%(message)s",
         stream=sys.stdout,
         level=getattr(logging, level.upper(), logging.INFO),
     )
+    for name in ("fastmcp", "mcp", "httpx", "httpcore", "uvicorn"):
+        logging.getLogger(name).setLevel(logging.WARNING)
+    fastmcp_tools = logging.getLogger("fastmcp.server.server")
+    if _skip_duplicate_tool_error not in fastmcp_tools.filters:
+        fastmcp_tools.addFilter(_skip_duplicate_tool_error)
     processors: list[Processor] = [
         structlog.contextvars.merge_contextvars,
         structlog.processors.add_log_level,

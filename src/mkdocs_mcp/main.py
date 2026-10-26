@@ -11,7 +11,7 @@ from .server import create_app
 def run() -> None:
     cfg = get_settings()
     app = create_app(cfg)
-    uvicorn.run(app, host=cfg.host, port=cfg.port, log_config=None)
+    uvicorn.run(app, host=cfg.host, port=cfg.port, log_config=None, access_log=False)
 
 
 if __name__ == "__main__":

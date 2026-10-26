@@ -9,10 +9,7 @@ from urllib.parse import urlsplit
 import httpx
 
 from ..config import Settings
-from ..obs.logging import get_logger
 from .base import RawCorpus, RawPage
-
-log = get_logger(__name__)
 
 
 class _ReadableHTML(HTMLParser):
@@ -152,7 +149,6 @@ class SearchIndexSource:
 
         raw_pages.sort(key=lambda page: page.rel_path)
         self._pending = (resp.headers.get("ETag"), resp.headers.get("Last-Modified"))
-        log.info("search_index_loaded", pages=len(raw_pages), entries=len(data["docs"]))
         return RawCorpus(pages=raw_pages)
 
     def accept(self) -> None:

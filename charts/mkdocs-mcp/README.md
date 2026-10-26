@@ -44,6 +44,10 @@ curl -fsS https://<route-host>/health
 curl -fsS https://<route-host>/ready
 ```
 
+Open `https://<route-host>/` in a browser for the connection page and current
+index status. A browser request to `/mcp` shows that page too; MCP clients use
+`/mcp` as before.
+
 ## 4. Connect a client
 ```json
 { "mcpServers": { "mkdocs-docs": {
@@ -69,3 +73,6 @@ curl -fsS https://<route-host>/ready
 | Pod not ready | `oc logs` — search index URL or HTTPS egress failing? |
 | Empty results | Check the published `search_index.json` and `get_statistics` |
 | Wrong links | `MKDOCS_MCP_BASE_URL` does not match the published site |
+
+See [logs and metrics](../../docs/OBSERVABILITY.md) for the available metrics
+and example dashboard and alert expressions.

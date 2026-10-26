@@ -13,6 +13,8 @@ fullnameOverride: ""
 # --- application configuration (-> ConfigMap, MKDOCS_MCP_* env) ---------------
 config:
   serverName: MkDocs Docs                  # surfaced to MCP clients
+  host: 0.0.0.0
+  port: 8000
   searchIndexUrl: ""                       # defaults to baseUrl/search/search_index.json
   baseUrl: https://docs.example.com
   reindexIntervalMinutes: 30

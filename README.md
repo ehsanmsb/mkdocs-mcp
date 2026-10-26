@@ -29,6 +29,10 @@ MCP at `http://localhost:8000/mcp`. Set `MKDOCS_MCP_SEARCH_INDEX_URL` if your
 site publishes its search index elsewhere. The index must be reachable when
 the server starts.
 
+Opening `/` in a browser shows the server status and MCP connection URL.
+Opening `/mcp` in a browser shows the same page; MCP clients continue to use
+`/mcp` for protocol requests.
+
 For MCP clients that use an `mcpServers` JSON configuration:
 
 ```json
@@ -45,6 +49,7 @@ For MCP clients that use an `mcpServers` JSON configuration:
 ## Documentation
 
 - [Configuration and environment variables](docs/CONFIGURATION.md)
+- [Logs, metrics, dashboards, and alerts](docs/OBSERVABILITY.md)
 - [Tools, search behavior, and limitations](docs/USAGE.md)
 - [Deployment on OKD/OpenShift](charts/mkdocs-mcp/README.md)
 - [Releases and versioning](docs/RELEASES.md)

@@ -6,6 +6,7 @@ Also owns conditional refresh of the published search corpus.
 from __future__ import annotations
 
 import asyncio
+import contextlib
 import time
 from urllib.parse import urljoin
 
@@ -80,10 +81,29 @@ class Indexer:
         self._task: asyncio.Task | None = None
 
     async def build(self) -> IndexStore:
-        t0 = time.time()
+        start = time.perf_counter()
+        try:
+            return await self._build(start)
+        except Exception as exc:
+            metrics.INDEX_REFRESH.labels(result="error").inc()
+            log.error(
+                "index_refresh_failed",
+                error_type=type(exc).__name__,
+                error=str(exc)[:240],
+                retained_pages=len(self.engine.store.documents),
+            )
+            raise
+        finally:
+            metrics.INDEX_REFRESH_DURATION.observe(time.perf_counter() - start)
+
+    async def _build(self, start: float) -> IndexStore:
         corpus = await self.source.load()
         if corpus is None:
-            log.info("search_index_unchanged")
+            if not self.engine.store.is_loaded:
+                raise ValueError("Search index returned 304 before initial load")
+            metrics.INDEX_REFRESH.labels(result="unchanged").inc()
+            metrics.INDEX_LAST_CHECK.set(time.time())
+            log.debug("index_unchanged")
             return self.engine.store
         store = IndexStore()
         for page in corpus.pages:
@@ -104,11 +124,13 @@ class Indexer:
         self.engine.attach(store)
         self.source.accept()
 
-        dur = int((time.time() - t0) * 1000)
-        metrics.REINDEX.labels(status="ok").inc()
-        metrics.INDEX_AGE.set(0)
+        dur = round((time.perf_counter() - start) * 1000)
+        metrics.INDEX_REFRESH.labels(result="updated").inc()
+        metrics.INDEX_LAST_CHECK.set(time.time())
+        metrics.INDEX_LAST_BUILD.set(store.built_at)
+        metrics.INDEX_READY.set(1)
         log.info(
-            "index_built",
+            "index_updated",
             pages=len(store.documents),
             sections=len(store.sections),
             duration_ms=dur,
@@ -116,17 +138,13 @@ class Indexer:
         return store
 
     async def safe_build(self) -> None:
-        try:
+        with contextlib.suppress(Exception):  # Keep serving the last good index.
             await self.build()
-        except Exception as exc:  # noqa: BLE001 - keep serving stale index
-            metrics.REINDEX.labels(status="error").inc()
-            log.error("index_build_failed", error=str(exc))
 
     async def _loop(self) -> None:
         interval = self.cfg.reindex_interval_minutes * 60
         while interval > 0:
             await asyncio.sleep(interval)
-            log.info("scheduled_reindex_start")
             await self.safe_build()
 
     def start_scheduler(self) -> None:

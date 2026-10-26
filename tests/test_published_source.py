@@ -3,6 +3,7 @@
 import httpx
 import pytest
 from fastmcp import Client, FastMCP
+from prometheus_client import REGISTRY
 
 from mkdocs_mcp.config import Settings
 from mkdocs_mcp.context import AppContext
@@ -33,6 +34,12 @@ def _mock_http(monkeypatch, handler):
 
 async def test_published_search_and_conditional_refresh(monkeypatch, published_cfg):
     requests = []
+    updated_before = (
+        REGISTRY.get_sample_value("mkdocs_mcp_index_refresh_total", {"result": "updated"}) or 0
+    )
+    unchanged_before = (
+        REGISTRY.get_sample_value("mkdocs_mcp_index_refresh_total", {"result": "unchanged"}) or 0
+    )
 
     def handler(request):
         requests.append(request)
@@ -84,6 +91,18 @@ async def test_published_search_and_conditional_refresh(monkeypatch, published_c
     second = await ctx.indexer.build()
     assert second is first
     assert requests[1].headers["if-none-match"] == '"first"'
+    assert (
+        REGISTRY.get_sample_value("mkdocs_mcp_index_refresh_total", {"result": "updated"})
+        == updated_before + 1
+    )
+    assert (
+        REGISTRY.get_sample_value("mkdocs_mcp_index_refresh_total", {"result": "unchanged"})
+        == unchanged_before + 1
+    )
+    assert REGISTRY.get_sample_value("mkdocs_mcp_index_ready") == 1
+    assert (
+        REGISTRY.get_sample_value("mkdocs_mcp_index_last_check_timestamp_seconds") >= first.built_at
+    )
 
 
 def test_unknown_terms_do_not_match_a_generic_word():
@@ -103,6 +122,9 @@ def test_unknown_terms_do_not_match_a_generic_word():
 
 async def test_failed_refresh_keeps_last_good_index(monkeypatch, published_cfg):
     calls = 0
+    errors_before = (
+        REGISTRY.get_sample_value("mkdocs_mcp_index_refresh_total", {"result": "error"}) or 0
+    )
 
     def handler(_request):
         nonlocal calls
@@ -121,3 +143,7 @@ async def test_failed_refresh_keeps_last_good_index(monkeypatch, published_cfg):
     await ctx.indexer.safe_build()
     assert ctx.store is first
     assert first.get_doc("index").url == "https://docs.example.com/"
+    assert (
+        REGISTRY.get_sample_value("mkdocs_mcp_index_refresh_total", {"result": "error"})
+        == errors_before + 1
+    )

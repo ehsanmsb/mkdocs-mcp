@@ -32,4 +32,25 @@ The chart maps application settings from `config` in
 Set `config.baseUrl` to the published site's root. Leave
 `config.searchIndexUrl` empty for the standard MkDocs location; override it only
 for a custom location. The chart fixes the application ports at `8000` and
-`9000`, matching its container and Service configuration.
+`9000`, matching its container and Service configuration. Every application
+environment variable has a value in the chart:
+
+| Environment variable | Helm value |
+| --- | --- |
+| `MKDOCS_MCP_SERVER_NAME` | `config.serverName` |
+| `MKDOCS_MCP_HOST` | `config.host` |
+| `MKDOCS_MCP_PORT` | `config.port` |
+| `MKDOCS_MCP_SEARCH_INDEX_URL` | `config.searchIndexUrl` |
+| `MKDOCS_MCP_BASE_URL` | `config.baseUrl` |
+| `MKDOCS_MCP_REINDEX_INTERVAL_MINUTES` | `config.reindexIntervalMinutes` |
+| `MKDOCS_MCP_RATE_LIMIT_ENABLED` | `config.rateLimitEnabled` |
+| `MKDOCS_MCP_RATE_LIMIT_PER_SECOND` | `config.rateLimitPerSecond` |
+| `MKDOCS_MCP_RATE_LIMIT_BURST` | `config.rateLimitBurst` |
+| `MKDOCS_MCP_LOG_LEVEL` | `config.logLevel` |
+| `MKDOCS_MCP_LOG_JSON` | `config.logJson` |
+| `MKDOCS_MCP_METRICS_ENABLED` | `config.metricsEnabled` |
+
+The chart uses `config.port` for the container and network policy too. Keep
+`config.host: 0.0.0.0` in Kubernetes so the Service can reach the pod. Metrics
+are exposed on the fixed port `9000`. See [logs and metrics](OBSERVABILITY.md)
+for dashboard and alert queries.

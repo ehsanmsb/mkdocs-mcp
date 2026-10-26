@@ -81,4 +81,5 @@ class SearchEngine:
             )
             if len(hits) >= limit:
                 break
+        metrics.SEARCHES.labels(result="hit" if hits else "miss").inc()
         return hits

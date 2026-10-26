@@ -34,8 +34,10 @@ spec:
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           securityContext: {{- toYaml .Values.securityContext | nindent 12 }}
           ports:
-            - { name: http, containerPort: 8000 }
+            - { name: http, containerPort: {{ .Values.config.port }} }
+            {{- if .Values.config.metricsEnabled }}
             - { name: metrics, containerPort: 9000 }
+            {{- end }}
           envFrom:
             - configMapRef: { name: {{ include "mkdocs-mcp.fullname" . }} }
           startupProbe:

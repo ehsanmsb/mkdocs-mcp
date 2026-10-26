@@ -4,8 +4,8 @@ metadata:
   name: {{ include "mkdocs-mcp.fullname" . }}
   labels: {{- include "mkdocs-mcp.labels" . | nindent 4 }}
 data:
-  MKDOCS_MCP_HOST: "0.0.0.0"
-  MKDOCS_MCP_PORT: "8000"
+  MKDOCS_MCP_HOST: {{ .Values.config.host | quote }}
+  MKDOCS_MCP_PORT: {{ .Values.config.port | quote }}
   MKDOCS_MCP_SEARCH_INDEX_URL: {{ .Values.config.searchIndexUrl | quote }}
   MKDOCS_MCP_BASE_URL: {{ .Values.config.baseUrl | quote }}
   MKDOCS_MCP_REINDEX_INTERVAL_MINUTES: {{ .Values.config.reindexIntervalMinutes | quote }}
