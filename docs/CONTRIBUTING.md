@@ -11,23 +11,15 @@ Use Python 3.12.
 uv pip install -e '.[dev]'
 ```
 
-For optional semantic or hybrid search work, install the vector extra:
-
-```bash
-uv pip install -e '.[dev,vectors]'
-```
-
 Run the server locally against a published MkDocs site:
 
 ```bash
 export MKDOCS_MCP_BASE_URL=https://docs.example.com
-export MKDOCS_MCP_SEARCH_INDEX_URL=https://docs.example.com/search/search_index.json
-
 mkdocs-mcp
 ```
 
-For parser development, set `MKDOCS_MCP_SOURCE_MODE=local` and
-`MKDOCS_MCP_LOCAL_DIR` to a local MkDocs project directory.
+Tests use a small published search index fixture in
+`tests/fixtures/search_index.json`.
 
 ## Validation
 

@@ -1,7 +1,7 @@
 # Deploying the MkDocs MCP server on OKD / OpenShift
 
 A generic, configurable MCP server for any MkDocs documentation site. All
-site-specific values (URLs, tenants, topics) are supplied via Helm values
+site-specific values (URLs and server name) are supplied via Helm values
 / env — nothing is hardcoded.
 
 ## Prerequisites
@@ -12,7 +12,8 @@ site-specific values (URLs, tenants, topics) are supplied via Helm values
 
 ## 1. Configure the documentation source
 Copy `values-production.yaml` to `values-production.local.yaml` and set
-`config.baseUrl`, `config.searchIndexUrl`, and `route.host` there. The local
+`config.baseUrl` and `route.host` there. Set `config.searchIndexUrl` only if
+the index is not at `<baseUrl>/search/search_index.json`. The local
 file is ignored by Git. The checked-in values are examples and must not
 contain private deployment addresses. MCP clients do not need a token. The
 pod must be able to fetch the published search index over HTTPS.
@@ -27,7 +28,6 @@ helm upgrade --install mkdocs-mcp charts/mkdocs-mcp \
   -n docs-mcp-staging --create-namespace \
   -f charts/mkdocs-mcp/values-staging.yaml \
   --set image.tag=sha-$(git rev-parse HEAD) \
-  --set config.searchIndexUrl=https://docs.example.com/search/search_index.json \
   --set config.baseUrl=https://docs.example.com
 
 helm upgrade --install mkdocs-mcp charts/mkdocs-mcp \
@@ -62,9 +62,6 @@ curl -fsS https://<route-host>/ready
   assigns the UID via SCC — do not set `runAsUser`.
 - **Access**: anyone who can reach `/mcp` can use its read-only documentation
   tools. The server reads only the public MkDocs search index.
-- **Topics**: customize the topic taxonomy with `MKDOCS_MCP_TOPICS_FILE`
-  pointing at a mounted YAML, and pick the convenience aliases via
-  `MKDOCS_MCP_FEATURED_TOPICS`.
 
 ## Troubleshooting
 | Symptom | Check |

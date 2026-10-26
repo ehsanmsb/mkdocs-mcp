@@ -21,11 +21,9 @@ def register(mcp: FastMCP, ctx: AppContext) -> None:
         return PageContent(
             page_id=d.page_id,
             title=d.title,
-            breadcrumb=d.breadcrumb + [d.title],
+            breadcrumb=[d.title],
             url=d.url,
-            tenant=d.tenant,
             doc_type=d.doc_type,
-            topics=d.topics,
             headings=d.headings,
             content=d.content,
         )
@@ -51,15 +49,12 @@ def register(mcp: FastMCP, ctx: AppContext) -> None:
 
     @mcp.tool
     def list_pages(
-        tenant: str | None = None,
         doc_type: str | None = None,
     ) -> list[PageRef]:
-        """List indexed published pages, optionally filtered by tenant or doc_type."""
+        """List indexed published pages, optionally filtered by doc_type."""
         ctx.ensure_loaded()
         out: list[PageRef] = []
         for d in ctx.store.documents.values():
-            if tenant and d.tenant != tenant:
-                continue
             if doc_type and d.doc_type != doc_type:
                 continue
             out.append(
@@ -68,8 +63,6 @@ def register(mcp: FastMCP, ctx: AppContext) -> None:
                     title=d.title,
                     url=d.url,
                     doc_type=d.doc_type,
-                    tenant=d.tenant,
-                    topics=d.topics,
                 )
             )
         out.sort(key=lambda p: p.page_id)

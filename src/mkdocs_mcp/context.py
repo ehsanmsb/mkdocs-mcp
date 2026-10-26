@@ -9,16 +9,14 @@ from __future__ import annotations
 
 from .config import Settings
 from .indexing.indexer import Indexer
-from .indexing.metadata import Classifier
 from .search.engine import SearchEngine
 
 
 class AppContext:
     def __init__(self, cfg: Settings) -> None:
         self.cfg = cfg
-        self.classifier = Classifier(cfg)
-        self.engine = SearchEngine(cfg)
-        self.indexer = Indexer(cfg, self.engine, self.classifier)
+        self.engine = SearchEngine()
+        self.indexer = Indexer(cfg, self.engine)
 
     @property
     def store(self):

@@ -26,26 +26,6 @@ def page_id_from_relpath(rel_path: str) -> str:
     return rel_path[:-3] if rel_path.endswith(".md") else rel_path
 
 
-def page_url(base_url: str, rel_path: str) -> str:
-    """Build a MkDocs directory-style URL for a page.
-
-    ``index.md``   -> ``{base}/``
-    ``a/b.md``     -> ``{base}/a/b/``
-    ``a/index.md`` -> ``{base}/a/``
-    """
-    base = base_url.rstrip("/")
-    pid = page_id_from_relpath(rel_path)
-    if pid == "index":
-        return f"{base}/"
-    if pid.endswith("/index"):
-        return f"{base}/{pid[: -len('/index')]}/"
-    return f"{base}/{pid}/"
-
-
-def section_url(page_url_: str, anchor: str) -> str:
-    return f"{page_url_}#{anchor}" if anchor else page_url_
-
-
 def make_snippet(text: str, query_terms: list[str], width: int = 240) -> str:
     """Window the text around the first matching query term."""
     if not text:

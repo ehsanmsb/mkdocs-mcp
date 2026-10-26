@@ -1,3 +1,5 @@
+![MkDocs MCP banner](assets/mkdocs-mcp-banner.jpg)
+
 # MkDocs MCP Server
 
 [![Build and Release](https://github.com/ehsanmsb/mkdocs-mcp/actions/workflows/release.yml/badge.svg)](https://github.com/ehsanmsb/mkdocs-mcp/actions/workflows/release.yml)

@@ -1,4 +1,4 @@
-"""Search tools: search_docs, search_section, semantic_search."""
+"""Search the published documentation by keyword."""
 
 from __future__ import annotations
 
@@ -13,32 +13,19 @@ def register(mcp: FastMCP, ctx: AppContext) -> None:
     @mcp.tool
     def search_docs(
         query: str,
-        tenant: str | None = None,
         doc_type: str | None = None,
-        topic: str | None = None,
         limit: int = 10,
     ) -> list[SearchHit]:
         """Search the documentation. Use this first for any "how do I…",
-        "where is…", or topic question. For non-English questions about English
+        "where is…", or general question. For non-English questions about English
         docs, translate the important search terms into English first.
 
         Returns the most relevant sections with title, breadcrumb, a deep-link
-        URL, and a snippet. Optional filters:
-          - tenant: a top-level section of the docs
-          - doc_type: guide | runbook | tutorial | troubleshooting | reference
-          - topic: a known technology topic (see find_by_topic for the list)
+        URL, and a snippet. Optional doc_type filter: guide, runbook,
+        tutorial, troubleshooting, or reference. Empty results mean no match.
         """
         ctx.ensure_loaded()
-        resolved_topic = ctx.classifier.resolve_topic(topic) if topic else None
-        if topic and not resolved_topic:
-            return []
-        f = Filters(
-            tenant=tenant,
-            doc_type=doc_type,
-            topic=resolved_topic,
-        )
-        hits = ctx.engine.search(query, f, limit=limit, mode="hybrid")
-        return hits or ctx.engine.empty_state(query)
+        return ctx.engine.search(query, Filters(doc_type=doc_type), limit=limit)
 
     @mcp.tool
     def search_section(page_id: str, query: str, limit: int = 5) -> list[SearchHit]:
@@ -47,30 +34,4 @@ def register(mcp: FastMCP, ctx: AppContext) -> None:
         ctx.ensure_loaded()
         if not ctx.store.get_doc(page_id):
             return []
-        return ctx.engine.search(
-            query, Filters(page_id=page_id), limit=limit, mode="lexical", dedupe_pages=False
-        )
-
-    @mcp.tool
-    def semantic_search(
-        query: str,
-        tenant: str | None = None,
-        doc_type: str | None = None,
-        topic: str | None = None,
-        limit: int = 10,
-    ) -> list[SearchHit]:
-        """Semantic / conceptual search (vector-based). Use for paraphrased or
-        intent questions where exact keywords may not appear. Falls back to
-        keyword search if the semantic layer is disabled."""
-        ctx.ensure_loaded()
-        resolved_topic = ctx.classifier.resolve_topic(topic) if topic else None
-        if topic and not resolved_topic:
-            return []
-        f = Filters(
-            tenant=tenant,
-            doc_type=doc_type,
-            topic=resolved_topic,
-        )
-        mode = "semantic" if ctx.engine.vector_enabled else "lexical"
-        hits = ctx.engine.search(query, f, limit=limit, mode=mode)
-        return hits or ctx.engine.empty_state(query)
+        return ctx.engine.search(query, Filters(page_id=page_id), limit=limit, dedupe_pages=False)

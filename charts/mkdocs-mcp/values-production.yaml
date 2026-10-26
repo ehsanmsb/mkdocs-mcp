@@ -5,8 +5,6 @@ image:
 
 config:
   serverName: MkDocs Docs
-  sourceMode: search_index
-  searchIndexUrl: https://docs.example.com/search/search_index.json
   baseUrl: https://docs.example.com
   reindexIntervalMinutes: 30
   logLevel: INFO

@@ -49,20 +49,13 @@ class IndexStore:
 
     # ---- stats ---------------------------------------------------------
     def statistics(self) -> Statistics:
-        by_tenant: Counter[str] = Counter()
         by_doc_type: Counter[str] = Counter()
-        by_topic: Counter[str] = Counter()
         for d in self.documents.values():
-            by_tenant[d.tenant or "_global"] += 1
             by_doc_type[d.doc_type] += 1
-            for t in d.topics:
-                by_topic[t] += 1
         return Statistics(
             pages=len(self.documents),
             sections=len(self.sections),
-            by_tenant=dict(by_tenant),
             by_doc_type=dict(by_doc_type),
-            by_topic=dict(by_topic),
             index_built_at=(
                 time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime(self.built_at))
                 if self.built_at

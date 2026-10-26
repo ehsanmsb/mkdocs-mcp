@@ -6,12 +6,9 @@ metadata:
 data:
   MKDOCS_MCP_HOST: "0.0.0.0"
   MKDOCS_MCP_PORT: "8000"
-  MKDOCS_MCP_SOURCE_MODE: {{ .Values.config.sourceMode | quote }}
   MKDOCS_MCP_SEARCH_INDEX_URL: {{ .Values.config.searchIndexUrl | quote }}
   MKDOCS_MCP_BASE_URL: {{ .Values.config.baseUrl | quote }}
   MKDOCS_MCP_REINDEX_INTERVAL_MINUTES: {{ .Values.config.reindexIntervalMinutes | quote }}
-  MKDOCS_MCP_EMBEDDINGS_ENABLED: {{ .Values.config.embeddingsEnabled | quote }}
-  MKDOCS_MCP_EMBEDDINGS_MODEL: {{ .Values.config.embeddingsModel | quote }}
   MKDOCS_MCP_RATE_LIMIT_ENABLED: {{ .Values.config.rateLimitEnabled | quote }}
   MKDOCS_MCP_RATE_LIMIT_PER_SECOND: {{ .Values.config.rateLimitPerSecond | quote }}
   MKDOCS_MCP_RATE_LIMIT_BURST: {{ .Values.config.rateLimitBurst | quote }}

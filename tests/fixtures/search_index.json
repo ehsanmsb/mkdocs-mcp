@@ -1,0 +1,12 @@
+{
+  "config": {"lang": ["en"]},
+  "docs": [
+    {"location": "platform/networking/expose-service/", "title": "Expose Service", "text": "Publish an HTTP service with a hostname."},
+    {"location": "platform/networking/expose-service/#create-an-ingress", "title": "Create an Ingress", "text": "Configure an ingress hostname and route traffic to the service."},
+    {"location": "platform/argocd/user-guide/", "title": "Argo CD User Guide", "text": ""},
+    {"location": "platform/argocd/user-guide/#overview", "title": "Overview", "text": "Argo CD is a declarative GitOps continuous delivery tool for Kubernetes."},
+    {"location": "platform/argocd/user-guide/#cli-login", "title": "CLI Login", "text": "Log in with:<pre><code class=\"language-bash\">argocd login --sso --grpc-web argocd.example</code></pre>"},
+    {"location": "platform/argocd/runbooks/migrate-repository/", "title": "Migrate Repository", "text": "Runbook for migrating an Argo CD repository."},
+    {"location": "platform/argocd/runbooks/migrate-repository/#migration", "title": "Migration", "text": "Migrate the repository and verify the deployment."}
+  ]
+}

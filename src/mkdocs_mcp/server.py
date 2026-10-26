@@ -37,7 +37,12 @@ def build_server(cfg: Settings | None = None) -> tuple[FastMCP, AppContext]:
 
     mcp = FastMCP(
         name=cfg.server_name,
-        instructions=cfg.server_instructions,
+        instructions=(
+            "Search the documentation with search_docs. Use search_section to narrow "
+            "a result, get_page to read it, and find_runbooks or find_examples when "
+            "needed. For questions in another language, search using relevant terms "
+            "from the documentation's language. Cite returned page URLs."
+        ),
     )
 
     mcp.add_middleware(ErrorHandlingMiddleware())
@@ -85,9 +90,9 @@ def create_app(cfg: Settings | None = None):
 
     if cfg.metrics_enabled:
         with contextlib.suppress(Exception):
-            metrics.start_metrics_server(cfg.metrics_port)
+            metrics.start_metrics_server(9000)
 
-    app = mcp.http_app(path=cfg.mcp_path)
+    app = mcp.http_app(path="/mcp")
 
     # Compose our index startup with FastMCP's own (session manager) lifespan.
     fastmcp_lifespan = app.router.lifespan_context
@@ -100,5 +105,5 @@ def create_app(cfg: Settings | None = None):
 
     app.router.lifespan_context = combined
 
-    log.info("server_built", source=cfg.source_mode, mcp_path=cfg.mcp_path)
+    log.info("server_built", mcp_path="/mcp")
     return app

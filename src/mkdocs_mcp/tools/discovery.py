@@ -18,20 +18,12 @@ class ExampleHit(BaseModel):
 
 def register(mcp: FastMCP, ctx: AppContext) -> None:
     @mcp.tool
-    def find_runbooks(topic: str | None = None, tenant: str | None = None) -> list[PageRef]:
-        """List operational runbooks (pages under runbooks/). Optionally filter
-        by topic or tenant. Use for "what runbooks exist for X?"."""
+    def find_runbooks() -> list[PageRef]:
+        """List operational runbooks (pages under runbooks/)."""
         ctx.ensure_loaded()
-        resolved = ctx.classifier.resolve_topic(topic) if topic else None
-        if topic and not resolved:
-            return []
         out: list[PageRef] = []
         for d in ctx.store.documents.values():
-            if not d.is_runbook:
-                continue
-            if tenant and d.tenant != tenant:
-                continue
-            if resolved and resolved not in d.topics:
+            if d.doc_type != "runbook":
                 continue
             out.append(
                 PageRef(
@@ -39,8 +31,6 @@ def register(mcp: FastMCP, ctx: AppContext) -> None:
                     title=d.title,
                     url=d.url,
                     doc_type=d.doc_type,
-                    tenant=d.tenant,
-                    topics=d.topics,
                 )
             )
         out.sort(key=lambda p: p.page_id)
@@ -48,23 +38,19 @@ def register(mcp: FastMCP, ctx: AppContext) -> None:
 
     @mcp.tool
     def find_examples(
-        topic: str | None = None,
         language: str | None = None,
         limit: int = 15,
     ) -> list[ExampleHit]:
         """Find sections that contain code/command examples, optionally filtered
-        by topic or code language (e.g. "bash", "yaml"). Use for "show me an
+        by code language (e.g. "bash", "yaml"). Use for "show me an
         example of …"."""
         ctx.ensure_loaded()
-        resolved = ctx.classifier.resolve_topic(topic) if topic else None
-        if topic and not resolved:
+        if limit <= 0:
             return []
         lang = language.lower() if language else None
         out: list[ExampleHit] = []
         for s in ctx.store.sections:
             if not s.code_blocks:
-                continue
-            if resolved and resolved not in s.topics:
                 continue
             blocks = (
                 [b for b in s.code_blocks if (b.language or "").lower() == lang]

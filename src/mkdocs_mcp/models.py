@@ -23,15 +23,10 @@ class Section(BaseModel):
     page_id: str  # e.g. "guides/deployment"
     page_title: str
     heading: str  # the section heading text ("" for the page intro)
-    level: int  # heading depth (1..6); 0 for the intro block
     anchor: str  # slug used in the URL fragment
     url: str  # deep link with #anchor
-    breadcrumb: list[str] = Field(default_factory=list)
     text: str
-    tenant: str | None = None
     doc_type: DocType = "guide"
-    topics: list[str] = Field(default_factory=list)
-    is_runbook: bool = False
     code_blocks: list[CodeBlock] = Field(default_factory=list)
 
 
@@ -40,13 +35,8 @@ class Document(BaseModel):
 
     page_id: str
     title: str
-    rel_path: str  # path relative to docs_dir, e.g. "guides/deployment.md"
     url: str
-    breadcrumb: list[str] = Field(default_factory=list)
-    tenant: str | None = None
     doc_type: DocType = "guide"
-    topics: list[str] = Field(default_factory=list)
-    is_runbook: bool = False
     headings: list[str] = Field(default_factory=list)
     content: str = ""
     section_ids: list[int] = Field(default_factory=list)  # indices into the store
@@ -63,7 +53,6 @@ class SearchHit(BaseModel):
     url: str
     snippet: str
     doc_type: DocType
-    tenant: str | None = None
     score: float
 
 
@@ -72,8 +61,6 @@ class PageRef(BaseModel):
     title: str
     url: str
     doc_type: DocType
-    tenant: str | None = None
-    topics: list[str] = Field(default_factory=list)
 
 
 class PageContent(BaseModel):
@@ -81,9 +68,7 @@ class PageContent(BaseModel):
     title: str
     breadcrumb: list[str]
     url: str
-    tenant: str | None = None
     doc_type: DocType
-    topics: list[str]
     headings: list[str]
     content: str
 
@@ -97,21 +82,10 @@ class SectionContent(BaseModel):
     next_heading: str | None = None
 
 
-class ReadingItem(BaseModel):
-    order: int
-    page_id: str
-    title: str
-    url: str
-    doc_type: DocType
-    why: str
-
-
 class Statistics(BaseModel):
     pages: int
     sections: int
-    by_tenant: dict[str, int]
     by_doc_type: dict[str, int]
-    by_topic: dict[str, int]
     index_built_at: str | None = None
 
 
@@ -121,4 +95,3 @@ class HealthStatus(BaseModel):
     index_age_seconds: float | None = None
     pages: int
     sections: int
-    vector_enabled: bool

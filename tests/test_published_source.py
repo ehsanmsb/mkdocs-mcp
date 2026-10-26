@@ -13,11 +13,9 @@ from mkdocs_mcp.tools import register_all
 @pytest.fixture
 def published_cfg():
     return Settings(
-        source_mode="search_index",
         base_url="https://docs.example.com",
         search_index_url="https://docs.example.com/search/search_index.json",
         reindex_interval_minutes=0,
-        embeddings_enabled=False,
         metrics_enabled=False,
         rate_limit_enabled=False,
     )

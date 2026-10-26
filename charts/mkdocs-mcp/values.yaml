@@ -13,12 +13,9 @@ fullnameOverride: ""
 # --- application configuration (-> ConfigMap, MKDOCS_MCP_* env) ---------------
 config:
   serverName: MkDocs Docs                  # surfaced to MCP clients
-  sourceMode: search_index
-  searchIndexUrl: https://docs.example.com/search/search_index.json
+  searchIndexUrl: ""                       # defaults to baseUrl/search/search_index.json
   baseUrl: https://docs.example.com
   reindexIntervalMinutes: 30
-  embeddingsEnabled: false
-  embeddingsModel: BAAI/bge-m3
   rateLimitEnabled: true
   rateLimitPerSecond: 5
   rateLimitBurst: 20

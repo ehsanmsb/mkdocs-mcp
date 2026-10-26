@@ -1,4 +1,4 @@
-"""Orchestrates: source.load() -> parse -> build store -> attach to engine.
+"""Orchestrates: fetch published index -> build store -> attach to engine.
 
 Also owns conditional refresh of the published search corpus.
 """
@@ -16,37 +16,36 @@ from ..models import CodeBlock, Document, Section
 from ..obs import metrics
 from ..obs.logging import get_logger
 from ..search.engine import SearchEngine
-from ..sources.base import RawPage, Source
-from ..sources.local_source import LocalSource
+from ..sources.base import RawPage
 from ..sources.search_index_source import SearchIndexSource
-from .metadata import Classifier
-from .parser import parse_page
 from .store import IndexStore
-from .text import page_id_from_relpath, page_url
+from .text import page_id_from_relpath
 
 log = get_logger(__name__)
 _md = MarkdownIt("commonmark")
 
 
-def make_source(cfg: Settings) -> Source:
-    if cfg.source_mode == "search_index":
-        return SearchIndexSource(cfg)
-    return LocalSource(cfg)
+def _doc_type(rel_path: str) -> str:
+    path = "/" + rel_path.lower()
+    if "/runbooks/" in path or "/runbook/" in path:
+        return "runbook"
+    if "/tutorials/" in path or "/tutorial/" in path:
+        return "tutorial"
+    if "troubleshoot" in path:
+        return "troubleshooting"
+    if any(part in path for part in ("/reference/", "/templates/", "/api/")):
+        return "reference"
+    return "guide"
 
 
-def _published_page(
-    page: RawPage, cfg: Settings, classifier: Classifier
-) -> tuple[str, list[Section], list[str], str, str]:
+def _published_page(page: RawPage, cfg: Settings) -> tuple[str, list[Section], list[str], str, str]:
     """Map each published search entry to exactly one searchable section."""
-    entries = page.published_entries or []
+    entries = page.published_entries
     title = entries[0][0]
     pid = page_id_from_relpath(page.rel_path)
     base = f"{cfg.base_url.rstrip('/')}/"
     page_url_ = urljoin(base, entries[0][2].split("#", 1)[0])
-    tenant = classifier.tenant_of(page.rel_path)
-    doc_type = classifier.doc_type_of(page.rel_path)
-    topics = classifier.topics_of(page.rel_path, page.raw)
-    is_runbook = classifier.is_runbook(page.rel_path)
+    doc_type = _doc_type(page.rel_path)
     headings: list[str] = []
     sections: list[Section] = []
     for label, body, location in entries:
@@ -63,14 +62,10 @@ def _published_page(
                 page_id=pid,
                 page_title=title,
                 heading=label or title,
-                level=2 if anchor else 0,
                 anchor=anchor,
                 url=urljoin(base, location),
                 text=body,
-                tenant=tenant,
                 doc_type=doc_type,
-                topics=topics,
-                is_runbook=is_runbook,
                 code_blocks=code_blocks,
             )
         )
@@ -78,11 +73,10 @@ def _published_page(
 
 
 class Indexer:
-    def __init__(self, cfg: Settings, engine: SearchEngine, classifier: Classifier) -> None:
+    def __init__(self, cfg: Settings, engine: SearchEngine) -> None:
         self.cfg = cfg
         self.engine = engine
-        self.classifier = classifier
-        self.source = make_source(cfg)
+        self.source = SearchIndexSource(cfg)
         self._task: asyncio.Task | None = None
 
     async def build(self) -> IndexStore:
@@ -94,34 +88,21 @@ class Indexer:
         store = IndexStore()
         for page in corpus.pages:
             pid = page_id_from_relpath(page.rel_path)
-            if page.published_entries is not None:
-                title, sections, headings, content, published_url = _published_page(
-                    page, self.cfg, self.classifier
-                )
-            else:
-                title, sections, headings, content = parse_page(
-                    page.rel_path, page.raw, self.cfg.base_url, self.classifier
-                )
-                published_url = page_url(self.cfg.base_url, page.rel_path)
+            title, sections, headings, content, published_url = _published_page(page, self.cfg)
             first = sections[0] if sections else None
             doc = Document(
                 page_id=pid,
                 title=title,
-                rel_path=page.rel_path,
                 url=published_url,
-                tenant=first.tenant if first else None,
                 doc_type=first.doc_type if first else "guide",
-                topics=first.topics if first else [],
-                is_runbook=first.is_runbook if first else False,
                 headings=headings,
                 content=content,
             )
             store.add_document(doc, sections)
 
         store.finalize()
-        self.engine.attach(store, vocab=self.classifier.vocab)
-        if isinstance(self.source, SearchIndexSource):
-            self.source.accept()
+        self.engine.attach(store)
+        self.source.accept()
 
         dur = int((time.time() - t0) * 1000)
         metrics.REINDEX.labels(status="ok").inc()

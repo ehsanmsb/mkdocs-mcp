@@ -2,7 +2,6 @@ replicaCount: 1
 
 config:
   baseUrl: https://docs.staging.example.com
-  searchIndexUrl: https://docs.staging.example.com/search/search_index.json
   reindexIntervalMinutes: 15
   logLevel: DEBUG
 
