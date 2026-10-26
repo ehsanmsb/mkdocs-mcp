@@ -16,29 +16,35 @@ concurrency:
 
 jobs:
   test:
-    name: Test
+    name: Test Python ${{ matrix.python-version }}
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.12", "3.14"]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
-          python-version: "3.12"
+          python-version: ${{ matrix.python-version }}
       - name: Install uv
-        run: pip install --no-cache-dir uv
+        run: pip install --no-cache-dir uv==0.11.23
       - name: Install project
-        run: uv pip install --system -e '.[dev]'
+        run: uv sync --locked --extra dev --python "${{ matrix.python-version }}"
       - name: Lint and test
         run: |
-          ruff check src tests
-          ruff format --check src tests
-          pytest -q
+          .venv/bin/ruff check src tests
+          .venv/bin/ruff format --check src tests
+          .venv/bin/mypy src/mkdocs_mcp
+          .venv/bin/pytest -q
       - uses: azure/setup-helm@v4
+        if: matrix.python-version == '3.14'
       - name: Check Helm chart
+        if: matrix.python-version == '3.14'
         run: |
           helm lint charts/mkdocs-mcp
           helm template mkdocs-mcp charts/mkdocs-mcp -f charts/mkdocs-mcp/values-production.yaml > /dev/null
       - name: Check Docker build on pull requests
-        if: github.event_name == 'pull_request'
+        if: github.event_name == 'pull_request' && matrix.python-version == '3.14'
         run: docker build --tag mkdocs-mcp:ci .
 
   release:
@@ -59,7 +65,7 @@ jobs:
           node-version: "24"
       - uses: actions/setup-python@v5
         with:
-          python-version: "3.12"
+          python-version: "3.14"
       - uses: azure/setup-helm@v4
       - uses: docker/setup-buildx-action@v3
       - name: Set image name
@@ -87,7 +93,7 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
       - name: Install Python build tools
-        run: python -m pip install --upgrade build
+        run: python -m pip install build==1.6.1
       - name: Publish semantic version and GitHub release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

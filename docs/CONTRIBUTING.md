@@ -5,10 +5,10 @@ for maintainers and easy to review.
 
 ## Development Setup
 
-Use Python 3.12.
+Use Python 3.14 for local development. CI also tests Python 3.12.
 
 ```bash
-uv pip install -e '.[dev]'
+uv sync --locked --extra dev --python 3.14
 ```
 
 Run the server locally against a published MkDocs site:
@@ -28,6 +28,7 @@ Before opening a pull request, run the checks that match your change:
 ```bash
 ruff check src tests
 ruff format --check src tests
+mypy src/mkdocs_mcp
 pytest -q
 helm lint charts/mkdocs-mcp
 ```

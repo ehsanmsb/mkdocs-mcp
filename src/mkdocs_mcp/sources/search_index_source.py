@@ -118,7 +118,7 @@ class SearchIndexSource:
             location = entry.get("location")
             title = entry.get("title")
             body = entry.get("text")
-            if not all(isinstance(v, str) for v in (location, title, body)):
+            if not (isinstance(location, str) and isinstance(title, str) and isinstance(body, str)):
                 raise ValueError("MkDocs search entries need string location, title and text")
             title = readable_text(title)
             rel = _location_to_relpath(location)

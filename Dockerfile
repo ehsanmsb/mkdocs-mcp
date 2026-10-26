@@ -1,18 +1,17 @@
 # syntax=docker/dockerfile:1
 # ---- builder -------------------------------------------------------------
-FROM python:3.12-slim AS builder
+FROM python:3.14-slim AS builder
 
 ENV PYTHONDONTWRITEBYTECODE=1 PIP_NO_CACHE_DIR=1
-RUN pip install --no-cache-dir uv
+RUN pip install --no-cache-dir uv==0.11.23
 
 WORKDIR /app
-COPY pyproject.toml README.md ./
+COPY pyproject.toml uv.lock README.md ./
 COPY src ./src
-# Build a wheel and install it (+ deps) into an isolated prefix.
-RUN uv pip install --system --prefix /install .
+RUN uv sync --locked --no-dev --no-editable
 
 # ---- runtime -------------------------------------------------------------
-FROM python:3.12-slim AS runtime
+FROM python:3.14-slim AS runtime
 
 RUN apt-get update \
     && apt-get install -y --no-install-recommends ca-certificates \
@@ -20,12 +19,11 @@ RUN apt-get update \
 
 ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
-    PATH=/install/bin:$PATH \
-    PYTHONPATH=/install/lib/python3.12/site-packages \
+    PATH=/app/.venv/bin:$PATH \
     MKDOCS_MCP_HOST=0.0.0.0 \
     MKDOCS_MCP_PORT=8000
 
-COPY --from=builder /install /install
+COPY --from=builder /app/.venv /app/.venv
 
 WORKDIR /app
 USER 1001

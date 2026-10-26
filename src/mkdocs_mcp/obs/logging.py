@@ -6,6 +6,7 @@ import logging
 import sys
 
 import structlog
+from structlog.typing import Processor
 
 
 def setup_logging(level: str = "INFO", json: bool = True) -> None:
@@ -14,7 +15,7 @@ def setup_logging(level: str = "INFO", json: bool = True) -> None:
         stream=sys.stdout,
         level=getattr(logging, level.upper(), logging.INFO),
     )
-    processors = [
+    processors: list[Processor] = [
         structlog.contextvars.merge_contextvars,
         structlog.processors.add_log_level,
         structlog.processors.TimeStamper(fmt="iso"),

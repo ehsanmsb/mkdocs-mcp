@@ -14,12 +14,11 @@ repository or require MCP client authentication.
 
 ## Quick start
 
-Requires Python 3.12+ and `uv`.
+Requires Python 3.12+ and `uv`. Python 3.14 is used for the Docker image.
 
 ```bash
-uv venv --python 3.12
+uv sync --locked --python 3.14
 source .venv/bin/activate
-uv pip install -e .
 export MKDOCS_MCP_BASE_URL=https://docs.example.com
 mkdocs-mcp
 ```
