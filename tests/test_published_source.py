@@ -46,7 +46,7 @@ async def test_published_search_and_conditional_refresh(monkeypatch, published_c
             json={
                 "config": {"lang": ["en"]},
                 "docs": [
-                    {"location": "guides/install/", "title": "Install", "text": "Start here."},
+                    {"location": "guides/install/", "title": "Install", "text": ""},
                     {
                         "location": "guides/install/#run-it",
                         "title": "Run <code>it</code>",
@@ -72,6 +72,7 @@ async def test_published_search_and_conditional_refresh(monkeypatch, published_c
     assert section.code_blocks[0].language == "yaml"
     assert "  kind: Pod" in section.code_blocks[0].code
     assert ctx.engine.search("apply yaml")[0].url == section.url
+    assert ctx.engine.search("install")[0].snippet
 
     mcp = FastMCP(name="published")
     register_all(mcp, ctx)

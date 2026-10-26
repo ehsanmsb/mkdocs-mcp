@@ -125,6 +125,12 @@ class SearchEngine:
             breadcrumb = (doc.breadcrumb if doc else []) + [sec.page_title]
             if sec.heading and sec.heading != sec.page_title:
                 breadcrumb = breadcrumb + [sec.heading]
+            snippet_text = sec.text
+            if not snippet_text and doc:
+                snippet_text = next(
+                    (s.text for s in self.store.sections_of(sec.page_id) if s.text),
+                    "",
+                )
             hits.append(
                 SearchHit(
                     page_id=sec.page_id,
@@ -132,7 +138,7 @@ class SearchEngine:
                     heading=sec.heading,
                     breadcrumb=breadcrumb,
                     url=sec.url,
-                    snippet=make_snippet(sec.text, q_terms),
+                    snippet=make_snippet(snippet_text, q_terms),
                     doc_type=sec.doc_type,
                     tenant=sec.tenant,
                     score=round(float(scores.get(i, 0.0)), 4),
@@ -164,7 +170,8 @@ class SearchEngine:
                 breadcrumb=[],
                 url="",
                 snippet=(
-                    "No pages matched. Try one of these documented topics via "
+                    "No pages matched. For non-English questions, try search terms "
+                    "in the documentation's language. Try these topics via "
                     f"find_by_topic: {', '.join(suggestions)}."
                 ),
                 doc_type="reference",
