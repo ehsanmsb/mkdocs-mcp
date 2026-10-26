@@ -13,8 +13,7 @@ Connect from Claude CLI (.mcp.json):
     "mcpServers": {
       "mkdocs-docs": {
         "type": "http",
-        "url": "{{- if .Values.route.enabled }}https://{{ .Values.route.host }}{{- else }}http://{{ include "mkdocs-mcp.fullname" . }}.{{ .Release.Namespace }}.svc:{{ .Values.service.port }}{{- end }}/mcp"{{- if eq .Values.secrets.authMode "bearer" }},
-        "headers": { "Authorization": "Bearer <token>" }{{- end }}
+        "url": "{{- if .Values.route.enabled }}https://{{ .Values.route.host }}{{- else }}http://{{ include "mkdocs-mcp.fullname" . }}.{{ .Release.Namespace }}.svc:{{ .Values.service.port }}{{- end }}/mcp"
       }
     }
   }

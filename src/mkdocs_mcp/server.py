@@ -1,7 +1,6 @@
 """Assemble the FastMCP app.
 
 Cross-cutting concerns are handled by FastMCP's own building blocks:
-  - authentication      -> StaticTokenVerifier (auth.build_verifier)
   - error handling      -> ErrorHandlingMiddleware
   - structured logging  -> StructuredLoggingMiddleware
   - timing              -> TimingMiddleware
@@ -23,7 +22,6 @@ from fastmcp.server.middleware.timing import TimingMiddleware
 from starlette.requests import Request
 from starlette.responses import JSONResponse
 
-from .auth import build_verifier
 from .config import Settings, get_settings
 from .context import AppContext
 from .obs import metrics
@@ -41,7 +39,6 @@ def build_server(cfg: Settings | None = None) -> tuple[FastMCP, AppContext]:
     mcp = FastMCP(
         name=cfg.server_name,
         instructions=cfg.server_instructions,
-        auth=build_verifier(cfg),
     )
 
     mcp.add_middleware(ErrorHandlingMiddleware())
@@ -109,5 +106,5 @@ def create_app(cfg: Settings | None = None):
 
     app.router.lifespan_context = combined
 
-    log.info("server_built", source=cfg.source_mode, auth=cfg.auth_mode, mcp_path=cfg.mcp_path)
+    log.info("server_built", source=cfg.source_mode, mcp_path=cfg.mcp_path)
     return app

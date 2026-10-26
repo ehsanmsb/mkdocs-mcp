@@ -29,8 +29,7 @@ podDisruptionBudget:
   enabled: true
   minAvailable: 2
 
-# Public MCP access. Set an external secret only when the docs repo needs a
-# read-only Git token; do not commit that token to this file.
+# Set an external secret only when the docs repo needs a read-only Git token;
+# do not commit that token to this file.
 secrets:
-  authMode: none
   existingSecret: ""

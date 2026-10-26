@@ -14,7 +14,6 @@ def cfg():
         repo_dir=FIXTURES,
         mkdocs_config="mkdocs.yml",
         base_url="https://docs.test",
-        auth_mode="none",
         snapshot_path="/tmp/mkdocs-mcp-test-snapshot.json",
         reindex_interval_minutes=0,
         metrics_enabled=False,

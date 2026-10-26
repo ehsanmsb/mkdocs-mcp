@@ -27,5 +27,5 @@ class AppContext:
     def ensure_loaded(self) -> None:
         if not self.store.is_loaded:
             raise RuntimeError(
-                "Documentation index is not ready yet. Try again shortly or call rebuild_index."
+                "Documentation index is not ready yet. Try again shortly."
             )

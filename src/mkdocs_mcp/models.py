@@ -147,12 +147,4 @@ class HealthStatus(BaseModel):
     vector_enabled: bool
 
 
-class RebuildResult(BaseModel):
-    status: str
-    pages: int
-    sections: int
-    duration_ms: int
-    commit: str | None = None
-
-
 TreeNode.model_rebuild()

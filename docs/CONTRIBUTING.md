@@ -24,7 +24,6 @@ export MKDOCS_MCP_SOURCE_MODE=local
 export MKDOCS_MCP_REPO_DIR=/path/to/your/mkdocs-repo
 export MKDOCS_MCP_MKDOCS_CONFIG=mkdocs.yml
 export MKDOCS_MCP_BASE_URL=https://docs.example.com
-export MKDOCS_MCP_AUTH_MODE=none
 
 mkdocs-mcp
 ```
@@ -41,7 +40,7 @@ helm lint charts/mkdocs-mcp
 ```
 
 Use focused tests for small changes, and add broader tests when changing shared
-indexing, parsing, search, auth, or MCP tool behavior.
+indexing, parsing, search, or MCP tool behavior.
 
 ## Pull Requests
 
@@ -52,7 +51,7 @@ Keep pull requests scoped to one change. Include:
 - validation output, or a clear reason if a check was not run
 - screenshots or command output when changing docs, chart behavior, or release workflows
 
-Do not include secrets, private repository URLs, bearer tokens, cookies, or
+Do not include secrets, private repository URLs, or
 customer documentation content in issues, pull requests, tests, or fixtures.
 
 ## Commit Messages
@@ -84,7 +83,7 @@ feat: add search index source adapter
 fix: handle pages without title metadata
 perf: reduce BM25 index rebuild allocations
 ci: add semantic release workflow
-feat!: rename authentication environment variables
+feat!: rename source configuration variables
 ```
 
 ## Release Flow
@@ -103,7 +102,6 @@ Useful starting points:
 - MCP server entrypoint: `src/mkdocs_mcp/server.py`
 - CLI entrypoint: `src/mkdocs_mcp/main.py`
 - Configuration: `src/mkdocs_mcp/config.py`
-- Auth: `src/mkdocs_mcp/auth.py`
 - Tools: `src/mkdocs_mcp/tools/`
 - Indexing and parsing: `src/mkdocs_mcp/indexing/`
 - Search: `src/mkdocs_mcp/search/`

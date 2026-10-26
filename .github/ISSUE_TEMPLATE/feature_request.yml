@@ -48,7 +48,6 @@ body:
         - Indexing / parsing
         - Search / ranking
         - Source adapters
-        - Authentication / authorization
         - Configuration
         - Observability / metrics
         - Helm chart / Kubernetes

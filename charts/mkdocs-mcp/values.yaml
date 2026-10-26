@@ -34,12 +34,9 @@ config:
   logJson: true
   metricsEnabled: true
 
-# --- secrets (-> Secret). Prefer ExternalSecret in real clusters. --------
+# --- Git source credential (-> Secret). Not used by MCP clients. --------
 secrets:
-  authMode: none                          # none | bearer
   gitToken: ""                            # for private repo clone
-  bearerTokens: ""                        # comma-separated
-  adminTokens: ""                         # comma-separated (rebuild_index)
   # If set, the chart will NOT create a Secret and will use this one instead.
   existingSecret: ""
 
@@ -101,12 +98,6 @@ networkPolicy:
   enabled: true
   # CIDRs / selectors allowed to reach the MCP port (e.g. the ingress controller).
   ingressFrom: []
-
-# Optional CronJob that triggers rebuild_index out-of-band (belt & suspenders;
-# the server already self-schedules via reindexIntervalMinutes).
-reindexCronJob:
-  enabled: false
-  schedule: "*/30 * * * *"
 
 # OpenShift-friendly: do NOT pin runAsUser; let the SCC assign the UID.
 podSecurityContext:

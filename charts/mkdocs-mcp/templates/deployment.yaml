@@ -39,9 +39,6 @@ spec:
           envFrom:
             - configMapRef: { name: {{ include "mkdocs-mcp.fullname" . }} }
             - secretRef: { name: {{ include "mkdocs-mcp.secretName" . }} }
-          env:
-            - name: MKDOCS_MCP_AUTH_MODE
-              value: {{ .Values.secrets.authMode | quote }}
           startupProbe:
             httpGet: { path: /ready, port: http }
             periodSeconds: 5

@@ -27,7 +27,7 @@ app.kubernetes.io/instance: {{ .Release.Name }}
 {{- if .Values.secrets.existingSecret -}}
 {{- .Values.secrets.existingSecret -}}
 {{- else -}}
-{{- printf "%s-auth" (include "mkdocs-mcp.fullname" .) -}}
+{{- printf "%s-git" (include "mkdocs-mcp.fullname" .) -}}
 {{- end -}}
 {{- end -}}
 

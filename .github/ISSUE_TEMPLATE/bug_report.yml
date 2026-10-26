@@ -27,7 +27,6 @@ body:
         - Indexing / parsing
         - Search / ranking
         - Source adapters
-        - Authentication / authorization
         - Configuration
         - Observability / metrics
         - Helm chart / Kubernetes
@@ -110,7 +109,7 @@ body:
     attributes:
       label: Confirmations
       options:
-        - label: I removed passwords, API keys, bearer tokens, cookies, and private repository URLs from this report
+        - label: I removed passwords, API keys, and private repository URLs from this report
           required: true
         - label: I searched existing issues before opening this report
           required: true

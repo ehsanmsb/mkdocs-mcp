@@ -36,11 +36,11 @@ async def test_tools_registered(client):
         "find_examples",
         "find_by_topic",
         "find_argocd_docs",
-        "rebuild_index",
         "health_check",
         "get_statistics",
     }
     assert expected <= tools
+    assert "rebuild_index" not in tools
 
 
 async def test_search_docs_tool(client):

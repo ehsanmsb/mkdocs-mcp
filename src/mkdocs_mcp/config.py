@@ -96,13 +96,6 @@ class Settings(BaseSettings):
     embeddings_model: str = "BAAI/bge-m3"  # multilingual, self-hosted
     rrf_k: int = 60  # Reciprocal Rank Fusion constant
 
-    # ---- Auth ----------------------------------------------------------
-    # none   -> open (local dev only)
-    # bearer -> static bearer token(s) via FastMCP StaticTokenVerifier
-    auth_mode: Literal["none", "bearer"] = "none"
-    bearer_tokens: str = ""  # comma-separated; normal scope
-    admin_tokens: str = ""  # comma-separated; admin scope (rebuild_index)
-
     # ---- Rate limiting (FastMCP RateLimitingMiddleware) ----------------
     rate_limit_enabled: bool = True
     rate_limit_per_second: float = 5.0
@@ -113,14 +106,6 @@ class Settings(BaseSettings):
     log_json: bool = True
     metrics_enabled: bool = True
     metrics_port: int = 9000
-
-    @property
-    def bearer_token_set(self) -> set[str]:
-        return {t.strip() for t in self.bearer_tokens.split(",") if t.strip()}
-
-    @property
-    def admin_token_set(self) -> set[str]:
-        return {t.strip() for t in self.admin_tokens.split(",") if t.strip()}
 
 
 _settings: Settings | None = None

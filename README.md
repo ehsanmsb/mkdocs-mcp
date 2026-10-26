@@ -19,7 +19,7 @@ topic taxonomy, and server identity are all supplied via configuration.
   layer (`sentence-transformers`, fused with Reciprocal Rank Fusion)
 - **Source of truth:** the docs **git repo** (with a `search_index.json` and a
   `local` fallback)
-- Built on established libraries — FastMCP (auth, middleware, transport),
+- Built on established libraries — FastMCP (middleware, transport),
   `markdown-it-py` + `python-markdown` + `python-frontmatter` (parsing),
   `pydantic-settings`, `structlog`, `prometheus-client`.
 
@@ -34,7 +34,6 @@ export MKDOCS_MCP_SOURCE_MODE=local
 export MKDOCS_MCP_REPO_DIR=/path/to/your/mkdocs-repo
 export MKDOCS_MCP_MKDOCS_CONFIG=mkdocs.yml
 export MKDOCS_MCP_BASE_URL=https://docs.example.com
-export MKDOCS_MCP_AUTH_MODE=none
 
 mkdocs-mcp        # serves http://0.0.0.0:8000/mcp
 ```
@@ -46,8 +45,8 @@ Health: `GET /health`, readiness: `GET /ready`, metrics: `:9000/metrics`.
 Copy `charts/mkdocs-mcp/values-production.yaml` to the Git-ignored
 `charts/mkdocs-mcp/values-production.local.yaml`, then set your documentation
 repository, MkDocs config path, published site URL, and MCP hostname there.
-The example allows MCP clients to connect without authentication. If the
-documentation repository is private, provide a read-only
+MCP clients connect without authentication. If the documentation repository
+is private, provide a read-only
 `MKDOCS_MCP_GIT_TOKEN` through a Kubernetes Secret; never add it to the values
 file.
 
@@ -78,8 +77,6 @@ All settings are env vars prefixed `MKDOCS_MCP_` (see `src/mkdocs_mcp/config.py`
 | `MKDOCS_MCP_TOPICS_FILE` | — | YAML topic taxonomy (else vendor-neutral default) |
 | `MKDOCS_MCP_FEATURED_TOPICS` | k8s/argocd/terraform/vault/gitlab | topics that get a `find_<topic>_docs` alias |
 | `MKDOCS_MCP_EMBEDDINGS_ENABLED` | `false` | needs the `vectors` extra |
-| `MKDOCS_MCP_AUTH_MODE` | `none` | `none` \| `bearer` |
-| `MKDOCS_MCP_BEARER_TOKENS` / `_ADMIN_TOKENS` | — | comma-separated |
 | `MKDOCS_MCP_REINDEX_INTERVAL_MINUTES` | `30` | `0` disables |
 
 ### Custom topic taxonomy
@@ -99,15 +96,12 @@ topics:
 **Knowledge:** `summarize_page`, `related_documents`, `suggest_reading`
 **Discovery:** `recent_changes`, `find_runbooks`, `find_examples`
 **Topics:** `find_by_topic` (+ `find_<topic>_docs` aliases generated from `FEATURED_TOPICS`)
-**Admin:** `rebuild_index` (admin scope), `health_check`, `get_statistics`
+**Status:** `health_check`, `get_statistics`
 
-## Auth
-
-Static bearer tokens are verified by FastMCP's `StaticTokenVerifier`; admin
-tokens carry the `admin` scope, required by `rebuild_index`. To use JWT or an
-OAuth provider (Keycloak, GitHub, Google, …), change `build_verifier` in
-`src/mkdocs_mcp/auth.py` to the matching FastMCP provider — the tools are
-unaffected.
+The MCP endpoint is open to clients that can reach it. The server refreshes its
+index on startup and every `MKDOCS_MCP_REINDEX_INTERVAL_MINUTES`; clients do not
+trigger re-indexing. `MKDOCS_MCP_GIT_TOKEN`, when needed, only lets the server
+read a private documentation repository.
 
 ## Semantic / hybrid search (optional)
 
