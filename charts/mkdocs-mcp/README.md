@@ -1,7 +1,7 @@
 # Deploying the MkDocs MCP server on OKD / OpenShift
 
 A generic, configurable MCP server for any MkDocs documentation site. All
-site-specific values (repo, URLs, tenants, topics) are supplied via Helm values
+site-specific values (URLs, tenants, topics) are supplied via Helm values
 / env — nothing is hardcoded.
 
 ## Prerequisites
@@ -12,21 +12,10 @@ site-specific values (repo, URLs, tenants, topics) are supplied via Helm values
 
 ## 1. Configure the documentation source
 Copy `values-production.yaml` to `values-production.local.yaml` and set
-`config.gitUrl`, `config.gitBranch`, `config.mkdocsConfig`, `config.baseUrl`,
-and `route.host` there. The local file is ignored by Git. The checked-in values
-are examples and must not contain private deployment addresses or credentials.
-
-MCP clients do not need a token. If the docs Git repository is private, set
-`secrets.existingSecret` to an externally managed
-Secret containing only a read-only Git token. For example:
-
-```bash
-oc -n docs-mcp create secret generic mkdocs-mcp-git \
-  --from-literal=MKDOCS_MCP_GIT_TOKEN=<repo-read-token>
-```
-
-For a public Git repository, leave `secrets.existingSecret` empty. The chart
-creates a Secret with an empty Git token.
+`config.baseUrl`, `config.searchIndexUrl`, and `route.host` there. The local
+file is ignored by Git. The checked-in values are examples and must not
+contain private deployment addresses. MCP clients do not need a token. The
+pod must be able to fetch the published search index over HTTPS.
 
 ## 2. Install / upgrade
 ```bash
@@ -34,7 +23,7 @@ helm upgrade --install mkdocs-mcp charts/mkdocs-mcp \
   -n docs-mcp-staging --create-namespace \
   -f charts/mkdocs-mcp/values-staging.yaml \
   --set image.tag=sha-$(git rev-parse HEAD) \
-  --set config.gitUrl=https://git.example.com/team/docs.git \
+  --set config.searchIndexUrl=https://docs.example.com/search/search_index.json \
   --set config.baseUrl=https://docs.example.com
 
 helm upgrade --install mkdocs-mcp charts/mkdocs-mcp \
@@ -59,18 +48,16 @@ curl -fsS https://<route-host>/ready
 ```
 
 ## Operational notes
-- **Indexing**: each replica clones the docs repo and builds its index in
-  seconds on startup, then refreshes every `config.reindexIntervalMinutes`.
-- **Storage**: `persistence.enabled=false` (emptyDir) by default — correct for
-  multi-replica Deployments. Only enable a PVC at `replicaCount=1` (RWO cannot
-  be multi-mounted); for multi-replica warm caching use a StatefulSet or RWX.
+- **Indexing**: each replica reads the published search index on startup and
+  checks `ETag` or `Last-Modified` every `config.reindexIntervalMinutes`.
+  No Git clone, Secret, or persistent volume is required.
 - **Scaling/HA**: `replicaCount>=2`, pod anti-affinity, `PodDisruptionBudget`,
   optional HPA. Readiness gates traffic until the index is loaded.
-- **Security**: non-root, read-only rootfs (writable `/data` + `/tmp` only),
+- **Security**: non-root, read-only rootfs (writable `/tmp` only),
   dropped caps, `NetworkPolicy` limiting egress to DNS + HTTPS. OpenShift
   assigns the UID via SCC — do not set `runAsUser`.
 - **Access**: anyone who can reach `/mcp` can use its read-only documentation
-  tools. A Git token, if configured, is used only by the server to read the source.
+  tools. The server reads only the public MkDocs search index.
 - **Topics**: customize the topic taxonomy with `MKDOCS_MCP_TOPICS_FILE`
   pointing at a mounted YAML, and pick the convenience aliases via
   `MKDOCS_MCP_FEATURED_TOPICS`.
@@ -78,6 +65,6 @@ curl -fsS https://<route-host>/ready
 ## Troubleshooting
 | Symptom | Check |
 |---|---|
-| Pod not ready | `oc logs` — git clone failing? token / egress? |
-| Empty results | wrong `MKDOCS_MCP_MKDOCS_CONFIG` / branch; check `get_statistics` |
+| Pod not ready | `oc logs` — search index URL or HTTPS egress failing? |
+| Empty results | Check the published `search_index.json` and `get_statistics` |
 | Wrong links | `MKDOCS_MCP_BASE_URL` does not match the published site |

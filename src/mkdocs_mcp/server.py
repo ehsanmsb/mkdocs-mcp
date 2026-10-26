@@ -11,7 +11,6 @@ Cross-cutting concerns are handled by FastMCP's own building blocks:
 
 from __future__ import annotations
 
-import asyncio
 import contextlib
 
 from fastmcp import FastMCP
@@ -75,12 +74,7 @@ def build_server(cfg: Settings | None = None) -> tuple[FastMCP, AppContext]:
 
 
 async def _startup_index(ctx: AppContext) -> None:
-    warmed = await ctx.indexer.warm_load()
-    if warmed:
-        # Refresh in the background so we serve immediately from the snapshot.
-        asyncio.create_task(ctx.indexer.safe_build())
-    else:
-        await ctx.indexer.safe_build()
+    await ctx.indexer.build()
     ctx.indexer.start_scheduler()
 
 

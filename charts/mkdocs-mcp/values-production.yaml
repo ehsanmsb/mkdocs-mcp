@@ -5,15 +5,9 @@ image:
 
 config:
   serverName: MkDocs Docs
-  sourceMode: git
-  gitUrl: https://git.example.com/team/docs.git
-  gitBranch: main
-  gitUsername: oauth2
-  mkdocsConfig: mkdocs.yml
-  docsSubdir: docs
+  sourceMode: search_index
+  searchIndexUrl: https://docs.example.com/search/search_index.json
   baseUrl: https://docs.example.com
-  repoWebUrl: https://git.example.com/team/docs
-  editBranch: main
   reindexIntervalMinutes: 30
   logLevel: INFO
 
@@ -28,8 +22,3 @@ autoscaling:
 podDisruptionBudget:
   enabled: true
   minAvailable: 2
-
-# Set an external secret only when the docs repo needs a read-only Git token;
-# do not commit that token to this file.
-secrets:
-  existingSecret: ""

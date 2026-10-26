@@ -38,7 +38,6 @@ spec:
             - { name: metrics, containerPort: 9000 }
           envFrom:
             - configMapRef: { name: {{ include "mkdocs-mcp.fullname" . }} }
-            - secretRef: { name: {{ include "mkdocs-mcp.secretName" . }} }
           startupProbe:
             httpGet: { path: /ready, port: http }
             periodSeconds: 5
@@ -51,16 +50,7 @@ spec:
             periodSeconds: 10
           resources: {{- toYaml .Values.resources | nindent 12 }}
           volumeMounts:
-            - { name: data, mountPath: /data }
             - { name: tmp, mountPath: /tmp }
       volumes:
         - name: tmp
           emptyDir: {}
-        {{- if .Values.persistence.enabled }}
-        - name: data
-          persistentVolumeClaim:
-            claimName: {{ include "mkdocs-mcp.fullname" . }}
-        {{- else }}
-        - name: data
-          emptyDir: {}
-        {{- end }}

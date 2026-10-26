@@ -1,37 +1,80 @@
 """Orchestrates: source.load() -> parse -> build store -> attach to engine.
 
-Also owns snapshot warm-load and the periodic re-index scheduler.
+Also owns conditional refresh of the published search corpus.
 """
 
 from __future__ import annotations
 
 import asyncio
 import time
+from urllib.parse import urljoin
+
+from markdown_it import MarkdownIt
 
 from ..config import Settings
-from ..models import Document
+from ..models import CodeBlock, Document, Section
 from ..obs import metrics
 from ..obs.logging import get_logger
 from ..search.engine import SearchEngine
-from ..sources.base import Source
-from ..sources.git_source import GitSource
+from ..sources.base import RawPage, Source
 from ..sources.local_source import LocalSource
 from ..sources.search_index_source import SearchIndexSource
 from .metadata import Classifier
-from .nav import Nav
 from .parser import parse_page
 from .store import IndexStore
 from .text import page_id_from_relpath, page_url
 
 log = get_logger(__name__)
+_md = MarkdownIt("commonmark")
 
 
 def make_source(cfg: Settings) -> Source:
-    if cfg.source_mode == "git":
-        return GitSource(cfg)
     if cfg.source_mode == "search_index":
         return SearchIndexSource(cfg)
     return LocalSource(cfg)
+
+
+def _published_page(
+    page: RawPage, cfg: Settings, classifier: Classifier
+) -> tuple[str, list[Section], list[str], str, str]:
+    """Map each published search entry to exactly one searchable section."""
+    entries = page.published_entries or []
+    title = entries[0][0]
+    pid = page_id_from_relpath(page.rel_path)
+    base = f"{cfg.base_url.rstrip('/')}/"
+    page_url_ = urljoin(base, entries[0][2].split("#", 1)[0])
+    tenant = classifier.tenant_of(page.rel_path)
+    doc_type = classifier.doc_type_of(page.rel_path)
+    topics = classifier.topics_of(page.rel_path, page.raw)
+    is_runbook = classifier.is_runbook(page.rel_path)
+    headings: list[str] = []
+    sections: list[Section] = []
+    for label, body, location in entries:
+        anchor = location.split("#", 1)[1] if "#" in location else ""
+        if anchor:
+            headings.append(label)
+        code_blocks = [
+            CodeBlock(language=token.info.strip() or None, code=token.content)
+            for token in _md.parse(body)
+            if token.type == "fence"
+        ]
+        sections.append(
+            Section(
+                page_id=pid,
+                page_title=title,
+                heading=label or title,
+                level=2 if anchor else 0,
+                anchor=anchor,
+                url=urljoin(base, location),
+                text=body,
+                tenant=tenant,
+                doc_type=doc_type,
+                topics=topics,
+                is_runbook=is_runbook,
+                code_blocks=code_blocks,
+            )
+        )
+    return title, sections, headings, page.raw, page_url_
 
 
 class Indexer:
@@ -42,55 +85,43 @@ class Indexer:
         self.source = make_source(cfg)
         self._task: asyncio.Task | None = None
 
-    def _edit_url(self, rel_path: str) -> str | None:
-        if not self.cfg.repo_web_url:
-            return None
-        suffix = self.cfg.edit_uri_template.format(
-            branch=self.cfg.edit_branch,
-            docs_subdir=self.cfg.docs_subdir,
-            rel_path=rel_path,
-        )
-        return f"{self.cfg.repo_web_url.rstrip('/')}{suffix}"
-
     async def build(self) -> IndexStore:
         t0 = time.time()
         corpus = await self.source.load()
+        if corpus is None:
+            log.info("search_index_unchanged")
+            return self.engine.store
         store = IndexStore()
-        store.nav = (
-            Nav.from_config_text(corpus.nav_config_text) if corpus.nav_config_text else Nav.empty()
-        )
-
         for page in corpus.pages:
-            title, sections, headings, content = parse_page(
-                page.rel_path, page.raw, self.cfg.base_url, self.classifier
-            )
             pid = page_id_from_relpath(page.rel_path)
+            if page.published_entries is not None:
+                title, sections, headings, content, published_url = _published_page(
+                    page, self.cfg, self.classifier
+                )
+            else:
+                title, sections, headings, content = parse_page(
+                    page.rel_path, page.raw, self.cfg.base_url, self.classifier
+                )
+                published_url = page_url(self.cfg.base_url, page.rel_path)
             first = sections[0] if sections else None
-            breadcrumb = store.nav.breadcrumbs.get(pid, [])
             doc = Document(
                 page_id=pid,
                 title=title,
                 rel_path=page.rel_path,
-                url=page_url(self.cfg.base_url, page.rel_path),
-                edit_url=self._edit_url(page.rel_path),
-                breadcrumb=breadcrumb,
+                url=published_url,
                 tenant=first.tenant if first else None,
                 doc_type=first.doc_type if first else "guide",
                 topics=first.topics if first else [],
                 is_runbook=first.is_runbook if first else False,
                 headings=headings,
                 content=content,
-                last_modified=page.last_modified,
-                author=page.author,
             )
             store.add_document(doc, sections)
 
-        store.finalize(corpus.commit)
+        store.finalize()
         self.engine.attach(store, vocab=self.classifier.vocab)
-        try:
-            store.save_snapshot(self.cfg.snapshot_path)
-        except OSError as exc:  # snapshot is best-effort
-            log.warning("snapshot_save_failed", error=str(exc))
+        if isinstance(self.source, SearchIndexSource):
+            self.source.accept()
 
         dur = int((time.time() - t0) * 1000)
         metrics.REINDEX.labels(status="ok").inc()
@@ -99,19 +130,9 @@ class Indexer:
             "index_built",
             pages=len(store.documents),
             sections=len(store.sections),
-            commit=store.commit,
             duration_ms=dur,
         )
         return store
-
-    async def warm_load(self) -> bool:
-        """Load a persisted snapshot so we serve immediately after restart."""
-        store = IndexStore.load_snapshot(self.cfg.snapshot_path)
-        if store and store.is_loaded:
-            self.engine.attach(store, vocab=self.classifier.vocab)
-            log.info("warm_loaded", pages=len(store.documents), commit=store.commit)
-            return True
-        return False
 
     async def safe_build(self) -> None:
         try:

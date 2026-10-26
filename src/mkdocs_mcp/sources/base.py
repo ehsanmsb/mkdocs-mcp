@@ -1,8 +1,4 @@
-"""Source adapter interface.
-
-A source yields the raw corpus that the indexer parses. Keeping this behind a
-Protocol lets us swap git / search_index / local without touching the tools.
-"""
+"""Published and local documentation source records."""
 
 from __future__ import annotations
 
@@ -13,17 +9,14 @@ from typing import Protocol
 @dataclass
 class RawPage:
     rel_path: str  # path relative to the docs dir, e.g. "guides/deployment.md"
-    raw: str  # markdown source
-    last_modified: str | None = None
-    author: str | None = None
+    raw: str  # Markdown, or a readable reconstruction of published search text
+    published_entries: list[tuple[str, str, str]] | None = None  # title, text, location
 
 
 @dataclass
 class RawCorpus:
     pages: list[RawPage] = field(default_factory=list)
-    nav_config_text: str | None = None  # contents of mkdocs.<env>.yaml (if available)
-    commit: str | None = None
 
 
 class Source(Protocol):
-    async def load(self) -> RawCorpus: ...
+    async def load(self) -> RawCorpus | None: ...

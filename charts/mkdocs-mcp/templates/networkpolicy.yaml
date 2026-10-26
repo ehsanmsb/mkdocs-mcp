@@ -20,7 +20,7 @@ spec:
     - ports:
         - { port: 53, protocol: UDP }
         - { port: 53, protocol: TCP }
-    # GitLab (docs repo) + internal endpoints over HTTPS
+    # Published MkDocs search index over HTTPS
     - ports:
         - { port: 443, protocol: TCP }
 {{- end }}

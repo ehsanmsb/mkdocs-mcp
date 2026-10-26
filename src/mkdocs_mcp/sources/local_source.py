@@ -1,4 +1,4 @@
-"""Read docs from an already-present checkout (dev + tests + git pod volume)."""
+"""Read a local MkDocs project for development and tests."""
 
 from __future__ import annotations
 
@@ -9,12 +9,11 @@ from .base import RawCorpus, RawPage
 
 
 class LocalSource:
-    def __init__(self, cfg: Settings, repo_dir: str | None = None) -> None:
+    def __init__(self, cfg: Settings) -> None:
         self.cfg = cfg
-        self.repo_dir = repo_dir or cfg.repo_dir
 
     async def load(self) -> RawCorpus:
-        docs_dir = os.path.join(self.repo_dir, self.cfg.docs_subdir)
+        docs_dir = os.path.join(self.cfg.local_dir, self.cfg.docs_subdir)
         pages: list[RawPage] = []
         for root, _dirs, files in os.walk(docs_dir):
             for name in files:
@@ -27,10 +26,4 @@ class LocalSource:
                 pages.append(RawPage(rel_path=rel, raw=raw))
         pages.sort(key=lambda p: p.rel_path)
 
-        nav_text: str | None = None
-        cfg_path = os.path.join(self.repo_dir, self.cfg.mkdocs_config)
-        if os.path.exists(cfg_path):
-            with open(cfg_path, encoding="utf-8") as f:
-                nav_text = f.read()
-
-        return RawCorpus(pages=pages, nav_config_text=nav_text, commit=None)
+        return RawCorpus(pages=pages)

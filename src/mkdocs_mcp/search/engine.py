@@ -47,12 +47,14 @@ class SearchEngine:
     # ---- lifecycle -----------------------------------------------------
     def attach(self, store: IndexStore, vocab: list[str] | None = None) -> None:
         """Swap in a freshly built store and rebuild the search structures."""
-        self.store = store
-        if vocab is not None:
-            self.vocab = vocab
-        self.bm25.build([(f"{s.page_title} {s.heading}", s.text) for s in store.sections])
+        bm25 = BM25Index(self.cfg.bm25_k1, self.cfg.bm25_b, self.cfg.title_boost)
+        bm25.build([(f"{s.page_title} {s.heading}", s.text) for s in store.sections])
         if self.cfg.embeddings_enabled:
             self.vectors.build([f"{s.page_title}\n{s.heading}\n{s.text}" for s in store.sections])
+        self.store = store
+        self.bm25 = bm25
+        if vocab is not None:
+            self.vocab = vocab
         metrics.INDEX_PAGES.set(len(store.documents))
         metrics.INDEX_SECTIONS.set(len(store.sections))
 

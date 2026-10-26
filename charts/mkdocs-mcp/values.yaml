@@ -13,17 +13,9 @@ fullnameOverride: ""
 # --- application configuration (-> ConfigMap, MKDOCS_MCP_* env) ---------------
 config:
   serverName: MkDocs Docs                  # surfaced to MCP clients
-  sourceMode: git                         # git | search_index | local
-  gitUrl: https://gitlab.example.com/org/docs.git
-  gitBranch: main
-  gitUsername: oauth2                      # GitLab PAT: oauth2; GitHub PAT: x-access-token
-
-  mkdocsConfig: mkdocs.yml
-  docsSubdir: docs
+  sourceMode: search_index
   searchIndexUrl: https://docs.example.com/search/search_index.json
   baseUrl: https://docs.example.com
-  repoWebUrl: https://gitlab.example.com/org/docs
-  editBranch: main
   reindexIntervalMinutes: 30
   embeddingsEnabled: false
   embeddingsModel: BAAI/bge-m3
@@ -33,12 +25,6 @@ config:
   logLevel: INFO
   logJson: true
   metricsEnabled: true
-
-# --- Git source credential (-> Secret). Not used by MCP clients. --------
-secrets:
-  gitToken: ""                            # for private repo clone
-  # If set, the chart will NOT create a Secret and will use this one instead.
-  existingSecret: ""
 
 service:
   type: ClusterIP
@@ -61,24 +47,13 @@ ingress:
   annotations: {}
   tls: []
 
-# Index store + git clone. Each replica builds its own index from git in
-# seconds, so this is OPTIONAL (warm-restart cache only). Default emptyDir keeps
-# replicas independent and HA-safe. Only enable a PVC with replicaCount=1 (RWO
-# cannot be multi-mounted); for multi-replica warm caching switch to a
-# StatefulSet with volumeClaimTemplates, or use an RWX storage class.
-persistence:
-  enabled: false
-  accessMode: ReadWriteOnce
-  size: 1Gi
-  storageClass: ""
-
 resources:
   requests:
-    cpu: 250m
-    memory: 512Mi
+    cpu: 100m
+    memory: 192Mi
   limits:
     cpu: "1"
-    memory: 1Gi
+    memory: 512Mi
 
 autoscaling:
   enabled: false

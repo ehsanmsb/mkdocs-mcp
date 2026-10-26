@@ -42,7 +42,6 @@ class Document(BaseModel):
     title: str
     rel_path: str  # path relative to docs_dir, e.g. "guides/deployment.md"
     url: str
-    edit_url: str | None = None
     breadcrumb: list[str] = Field(default_factory=list)
     tenant: str | None = None
     doc_type: DocType = "guide"
@@ -50,8 +49,6 @@ class Document(BaseModel):
     is_runbook: bool = False
     headings: list[str] = Field(default_factory=list)
     content: str = ""
-    last_modified: str | None = None  # ISO8601
-    author: str | None = None
     section_ids: list[int] = Field(default_factory=list)  # indices into the store
 
 
@@ -84,13 +81,10 @@ class PageContent(BaseModel):
     title: str
     breadcrumb: list[str]
     url: str
-    edit_url: str | None = None
     tenant: str | None = None
     doc_type: DocType
     topics: list[str]
     headings: list[str]
-    last_modified: str | None = None
-    author: str | None = None
     content: str
 
 
@@ -101,21 +95,6 @@ class SectionContent(BaseModel):
     text: str
     prev_heading: str | None = None
     next_heading: str | None = None
-
-
-class TreeNode(BaseModel):
-    title: str
-    page_id: str | None = None
-    url: str | None = None
-    children: list[TreeNode] = Field(default_factory=list)
-
-
-class ChangeEntry(BaseModel):
-    page_id: str
-    title: str
-    url: str
-    last_modified: str | None = None
-    author: str | None = None
 
 
 class ReadingItem(BaseModel):
@@ -133,7 +112,6 @@ class Statistics(BaseModel):
     by_tenant: dict[str, int]
     by_doc_type: dict[str, int]
     by_topic: dict[str, int]
-    index_commit: str | None = None
     index_built_at: str | None = None
 
 
@@ -143,8 +121,4 @@ class HealthStatus(BaseModel):
     index_age_seconds: float | None = None
     pages: int
     sections: int
-    last_commit: str | None = None
     vector_enabled: bool
-
-
-TreeNode.model_rebuild()

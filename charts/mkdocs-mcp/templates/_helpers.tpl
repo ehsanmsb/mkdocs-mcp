@@ -23,14 +23,6 @@ app.kubernetes.io/name: {{ include "mkdocs-mcp.name" . }}
 app.kubernetes.io/instance: {{ .Release.Name }}
 {{- end -}}
 
-{{- define "mkdocs-mcp.secretName" -}}
-{{- if .Values.secrets.existingSecret -}}
-{{- .Values.secrets.existingSecret -}}
-{{- else -}}
-{{- printf "%s-git" (include "mkdocs-mcp.fullname" .) -}}
-{{- end -}}
-{{- end -}}
-
 {{- define "mkdocs-mcp.image" -}}
 {{- printf "%s:%s" .Values.image.repository (.Values.image.tag | default .Chart.AppVersion) -}}
 {{- end -}}

@@ -25,13 +25,10 @@ async def test_tools_registered(client):
         "semantic_search",
         "get_page",
         "get_section",
-        "list_categories",
         "list_pages",
-        "browse_tree",
         "summarize_page",
         "related_documents",
         "suggest_reading",
-        "recent_changes",
         "find_runbooks",
         "find_examples",
         "find_by_topic",
@@ -41,6 +38,8 @@ async def test_tools_registered(client):
     }
     assert expected <= tools
     assert "rebuild_index" not in tools
+    assert "recent_changes" not in tools
+    assert "browse_tree" not in tools
 
 
 async def test_search_docs_tool(client):

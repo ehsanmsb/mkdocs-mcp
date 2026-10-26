@@ -1,7 +1,7 @@
 """Configuration via environment variables / ConfigMap / Secret.
 
 All settings are 12-factor and typed. Every env var is prefixed ``MKDOCS_MCP_``,
-e.g. ``MKDOCS_MCP_SOURCE_MODE=git``.
+e.g. ``MKDOCS_MCP_SOURCE_MODE=search_index``.
 
 The server is generic: no organization-, site-, or project-specific values are
 hardcoded. Anything site-specific (URLs, repo, tenant segments, topic taxonomy,
@@ -28,8 +28,8 @@ class Settings(BaseSettings):
     server_instructions: str = (
         "Search and explore the documentation. Start with search_docs for most "
         "questions; use find_by_topic for a whole technology; get_page to read a "
-        "page; find_runbooks for operational runbooks; recent_changes for what "
-        "changed recently."
+        "page; find_runbooks for operational runbooks. For questions written "
+        "in another language, search using relevant terms from the docs language."
     )
 
     # ---- Transport -----------------------------------------------------
@@ -38,32 +38,15 @@ class Settings(BaseSettings):
     mcp_path: str = "/mcp"
 
     # ---- Source --------------------------------------------------------
-    # git           -> clone/pull a docs repo (rich metadata + git history)
-    # search_index  -> fetch a published MkDocs search_index.json (zero deps)
-    # local         -> read an already-checked-out docs dir (dev / tests)
-    source_mode: Literal["git", "search_index", "local"] = "local"
-
-    git_url: str = ""  # required when source_mode=git
-    git_branch: str = "main"
-    # Auth for private/internal repos. Leave token empty for public repos.
-    # username: "oauth2" works for GitLab PATs; use your username or
-    # "x-access-token" for GitHub PATs.
-    git_token: str | None = None  # injected from a Secret
-    git_username: str = "oauth2"
-    repo_dir: str = "/data/repo"
-    mkdocs_config: str = "mkdocs.yml"  # supplies the nav tree
+    # Published search index in production; local is for development/tests.
+    source_mode: Literal["search_index", "local"] = "search_index"
+    search_index_url: str = ""  # defaults to {base_url}/search/search_index.json
+    local_dir: str = "."
     docs_subdir: str = "docs"
-
-    # search_index source only:
-    search_index_url: str = ""  # e.g. https://docs.example.com/search/search_index.json
 
     # ---- Links ---------------------------------------------------------
     # Canonical base URL used to build deep-links returned to clients.
     base_url: str = "http://localhost:8000"
-    # Optional repo web URL for "edit this page" links.
-    repo_web_url: str = ""
-    edit_uri_template: str = "/-/edit/{branch}/{docs_subdir}/{rel_path}"
-    edit_branch: str = "main"
 
     # ---- Classification (generic, fully configurable) ------------------
     # Top-level path segments treated as "tenants"/sections for filtering.
@@ -83,7 +66,6 @@ class Settings(BaseSettings):
 
     # ---- Indexing ------------------------------------------------------
     reindex_interval_minutes: int = 30
-    snapshot_path: str = "/data/index-snapshot.json"
 
     # ---- Search --------------------------------------------------------
     bm25_k1: float = 1.5

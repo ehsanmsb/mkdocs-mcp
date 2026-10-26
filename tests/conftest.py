@@ -11,10 +11,8 @@ def cfg():
 
     return Settings(
         source_mode="local",
-        repo_dir=FIXTURES,
-        mkdocs_config="mkdocs.yml",
+        local_dir=FIXTURES,
         base_url="https://docs.test",
-        snapshot_path="/tmp/mkdocs-mcp-test-snapshot.json",
         reindex_interval_minutes=0,
         metrics_enabled=False,
         rate_limit_enabled=False,

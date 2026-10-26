@@ -19,7 +19,6 @@ def register(mcp: FastMCP, ctx: AppContext) -> None:
             index_age_seconds=store.index_age_seconds(),
             pages=len(store.documents),
             sections=len(store.sections),
-            last_commit=store.commit,
             vector_enabled=ctx.engine.vector_enabled,
         )
 
