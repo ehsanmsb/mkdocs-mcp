@@ -15,6 +15,31 @@ import re
 from rank_bm25 import BM25Okapi
 
 _TOKEN = re.compile(r"\w+", re.UNICODE)
+_QUERY_FILLER = {
+    "a",
+    "an",
+    "and",
+    "are",
+    "can",
+    "do",
+    "does",
+    "for",
+    "how",
+    "i",
+    "in",
+    "is",
+    "my",
+    "of",
+    "on",
+    "or",
+    "our",
+    "the",
+    "to",
+    "we",
+    "what",
+    "where",
+    "with",
+}
 
 
 def tokenize(text: str) -> list[str]:
@@ -39,8 +64,11 @@ class BM25Index:
     def search(self, query: str, candidates: list[int] | None = None) -> list[tuple[int, float]]:
         if self._bm25 is None or self.n == 0:
             return []
-        q_terms = tokenize(query)
+        q_terms = [term for term in tokenize(query) if term not in _QUERY_FILLER]
         if not q_terms:
+            return []
+        known = sum(term in self._bm25.idf for term in q_terms)
+        if len(q_terms) >= 3 and known <= 1 and len(q_terms) - known >= 2:
             return []
         scores = self._bm25.get_scores(q_terms)
         pool = candidates if candidates is not None else range(self.n)

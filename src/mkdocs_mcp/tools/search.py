@@ -19,7 +19,8 @@ def register(mcp: FastMCP, ctx: AppContext) -> None:
         limit: int = 10,
     ) -> list[SearchHit]:
         """Search the documentation. Use this first for any "how do I…",
-        "where is…", or topic question.
+        "where is…", or topic question. For non-English questions about English
+        docs, translate the important search terms into English first.
 
         Returns the most relevant sections with title, breadcrumb, a deep-link
         URL, and a snippet. Optional filters:

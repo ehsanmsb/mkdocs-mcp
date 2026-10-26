@@ -120,6 +120,7 @@ class SearchIndexSource:
             body = entry.get("text")
             if not all(isinstance(v, str) for v in (location, title, body)):
                 raise ValueError("MkDocs search entries need string location, title and text")
+            title = readable_text(title)
             rel = _location_to_relpath(location)
             bucket = pages[rel]
             if "#" in location:

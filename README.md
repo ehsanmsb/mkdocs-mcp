@@ -102,6 +102,8 @@ available. A restart requires the published index to be reachable.
 the rendered page. It does not return the original Markdown source or Git
 author/change history. Pages omitted from the site's search index are omitted
 from the MCP as well.
+Search is lexical by default: for questions in another language, the MCP client
+should search with terms in the documentation's language.
 
 ## Semantic / hybrid search (optional)
 

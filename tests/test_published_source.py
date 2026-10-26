@@ -49,7 +49,7 @@ async def test_published_search_and_conditional_refresh(monkeypatch, published_c
                     {"location": "guides/install/", "title": "Install", "text": "Start here."},
                     {
                         "location": "guides/install/#run-it",
-                        "title": "Run it",
+                        "title": "Run <code>it</code>",
                         "text": '<p>Apply this YAML:</p><pre><code class="language-yaml">'
                         "apiVersion: v1\n  kind: Pod\n</code></pre>",
                     },
@@ -68,6 +68,7 @@ async def test_published_search_and_conditional_refresh(monkeypatch, published_c
     assert "apiVersion: v1" in page.content
     section = first.sections_of("guides/install")[1]
     assert section.url == "https://docs.example.com/guides/install/#run-it"
+    assert section.heading == "Run it"
     assert section.code_blocks[0].language == "yaml"
     assert "  kind: Pod" in section.code_blocks[0].code
     assert ctx.engine.search("apply yaml")[0].url == section.url
@@ -84,6 +85,21 @@ async def test_published_search_and_conditional_refresh(monkeypatch, published_c
     second = await ctx.indexer.build()
     assert second is first
     assert requests[1].headers["if-none-match"] == '"first"'
+
+
+def test_unknown_terms_do_not_match_a_generic_word():
+    from mkdocs_mcp.search.bm25 import BM25Index
+
+    bm25 = BM25Index()
+    bm25.build(
+        [
+            ("Topic guide", "This topic has details."),
+            ("Installation", "Install the service."),
+            ("Network Policy", "Apply a policy."),
+        ]
+    )
+    assert bm25.search("foobar nonexistent topic") == []
+    assert bm25.search("network policy")
 
 
 async def test_failed_refresh_keeps_last_good_index(monkeypatch, published_cfg):
