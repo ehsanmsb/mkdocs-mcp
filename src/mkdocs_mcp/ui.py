@@ -34,6 +34,7 @@ code{font-family:ui-monospace,SFMono-Regular,Consolas,monospace;word-break:break
 background:#0a1223;border:1px solid #344b72;border-radius:9px;padding:10px 12px;margin:10px 0}
 button,.button{background:#579bff;color:#081427;border:0;border-radius:8px;padding:8px 12px;
 font:inherit;font-size:.82rem;font-weight:700;cursor:pointer;text-decoration:none}
+.button{align-self:flex-start;display:inline-flex}
 button:hover,.button:hover{background:#83b5ff}
 .muted{font-size:.8rem}.links{display:flex;gap:14px;flex-wrap:wrap;margin-top:12px;
 font-size:.87rem}
