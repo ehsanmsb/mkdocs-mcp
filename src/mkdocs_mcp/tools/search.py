@@ -29,10 +29,13 @@ def register(mcp: FastMCP, ctx: AppContext) -> None:
           - topic: a known technology topic (see find_by_topic for the list)
         """
         ctx.ensure_loaded()
+        resolved_topic = ctx.classifier.resolve_topic(topic) if topic else None
+        if topic and not resolved_topic:
+            return []
         f = Filters(
             tenant=tenant,
             doc_type=doc_type,
-            topic=ctx.classifier.resolve_topic(topic) if topic else None,
+            topic=resolved_topic,
         )
         hits = ctx.engine.search(query, f, limit=limit, mode="hybrid")
         return hits or ctx.engine.empty_state(query)
@@ -44,8 +47,9 @@ def register(mcp: FastMCP, ctx: AppContext) -> None:
         ctx.ensure_loaded()
         if not ctx.store.get_doc(page_id):
             return []
-        hits = ctx.engine.search(query, Filters(), limit=50, mode="lexical")
-        return [h for h in hits if h.page_id == page_id][:limit]
+        return ctx.engine.search(
+            query, Filters(page_id=page_id), limit=limit, mode="lexical", dedupe_pages=False
+        )
 
     @mcp.tool
     def semantic_search(
@@ -59,10 +63,13 @@ def register(mcp: FastMCP, ctx: AppContext) -> None:
         intent questions where exact keywords may not appear. Falls back to
         keyword search if the semantic layer is disabled."""
         ctx.ensure_loaded()
+        resolved_topic = ctx.classifier.resolve_topic(topic) if topic else None
+        if topic and not resolved_topic:
+            return []
         f = Filters(
             tenant=tenant,
             doc_type=doc_type,
-            topic=ctx.classifier.resolve_topic(topic) if topic else None,
+            topic=resolved_topic,
         )
         mode = "semantic" if ctx.engine.vector_enabled else "lexical"
         hits = ctx.engine.search(query, f, limit=limit, mode=mode)

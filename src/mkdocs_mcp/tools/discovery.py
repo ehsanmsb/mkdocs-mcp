@@ -23,6 +23,8 @@ def register(mcp: FastMCP, ctx: AppContext) -> None:
         by topic or tenant. Use for "what runbooks exist for X?"."""
         ctx.ensure_loaded()
         resolved = ctx.classifier.resolve_topic(topic) if topic else None
+        if topic and not resolved:
+            return []
         out: list[PageRef] = []
         for d in ctx.store.documents.values():
             if not d.is_runbook:
@@ -55,6 +57,8 @@ def register(mcp: FastMCP, ctx: AppContext) -> None:
         example of …"."""
         ctx.ensure_loaded()
         resolved = ctx.classifier.resolve_topic(topic) if topic else None
+        if topic and not resolved:
+            return []
         lang = language.lower() if language else None
         out: list[ExampleHit] = []
         for s in ctx.store.sections:

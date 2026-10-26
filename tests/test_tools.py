@@ -48,6 +48,29 @@ async def test_search_docs_tool(client):
     assert r.structured_content["result"][0]["page_id"] == "platform/networking/expose-service"
 
 
+async def test_search_section_returns_multiple_sections_from_one_page(client):
+    async with client:
+        r = await client.call_tool(
+            "search_section",
+            {"page_id": "platform/argocd/user-guide", "query": "argo", "limit": 5},
+        )
+    hits = r.structured_content["result"]
+    assert len(hits) == 2
+    assert {hit["heading"] for hit in hits} == {"Overview", "CLI Login"}
+
+
+@pytest.mark.parametrize(
+    "tool", ["search_docs", "semantic_search", "find_runbooks", "find_examples"]
+)
+async def test_unknown_topic_does_not_remove_filter(client, tool):
+    args = {"topic": "not-a-topic"}
+    if tool in {"search_docs", "semantic_search"}:
+        args["query"] = "argocd"
+    async with client:
+        r = await client.call_tool(tool, args)
+    assert r.structured_content["result"] == []
+
+
 async def test_get_page_tool(client):
     async with client:
         r = await client.call_tool("get_page", {"page_id": "platform/argocd/user-guide"})

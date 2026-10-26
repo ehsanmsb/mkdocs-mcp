@@ -24,6 +24,7 @@ class Filters:
     tenant: str | None = None
     doc_type: str | None = None
     topic: str | None = None
+    page_id: str | None = None
     runbook_only: bool = False
 
 
@@ -64,7 +65,7 @@ class SearchEngine:
 
     # ---- filtering -----------------------------------------------------
     def _candidates(self, f: Filters) -> list[int] | None:
-        if not (f.tenant or f.doc_type or f.topic or f.runbook_only):
+        if not (f.tenant or f.doc_type or f.topic or f.page_id or f.runbook_only):
             return None
         out: list[int] = []
         for i, s in enumerate(self.store.sections):
@@ -73,6 +74,8 @@ class SearchEngine:
             if f.doc_type and s.doc_type != f.doc_type:
                 continue
             if f.topic and f.topic not in s.topics:
+                continue
+            if f.page_id and s.page_id != f.page_id:
                 continue
             if f.runbook_only and not s.is_runbook:
                 continue
@@ -86,6 +89,7 @@ class SearchEngine:
         filters: Filters | None = None,
         limit: int = 10,
         mode: str = "hybrid",
+        dedupe_pages: bool = True,
     ) -> list[SearchHit]:
         filters = filters or Filters()
         candidates = self._candidates(filters)
@@ -112,13 +116,13 @@ class SearchEngine:
         else:
             ranked = bm25_ranked
 
-        # Deduplicate: at most one hit per page (best section wins).
+        # General search returns the best section per page; search_section keeps all matches.
         hits: list[SearchHit] = []
         seen_pages: set[str] = set()
         q_terms = tokenize(query)
         for i in ranked:
             sec = self.store.sections[i]
-            if sec.page_id in seen_pages:
+            if dedupe_pages and sec.page_id in seen_pages:
                 continue
             seen_pages.add(sec.page_id)
             doc = self.store.get_doc(sec.page_id)

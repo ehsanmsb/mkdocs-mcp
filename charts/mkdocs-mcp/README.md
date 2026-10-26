@@ -18,6 +18,10 @@ contain private deployment addresses. MCP clients do not need a token. The
 pod must be able to fetch the published search index over HTTPS.
 
 ## 2. Install / upgrade
+The chart in this checkout defaults to the moving `main` image. Pin
+`image.tag=sha-<commit>` for a repeatable deployment, as shown below. A
+versioned chart attached to a GitHub release defaults to its matching image tag.
+
 ```bash
 helm upgrade --install mkdocs-mcp charts/mkdocs-mcp \
   -n docs-mcp-staging --create-namespace \
