@@ -10,19 +10,23 @@ site-specific values (repo, URLs, tenants, topics) are supplied via Helm values
   which publishes to `ghcr.io/<owner>/<repo>`).
 - Prometheus Operator if you want the `ServiceMonitor`.
 
-## 1. Create the auth secret (production)
-Production uses an externally managed secret (`secrets.existingSecret`). Create
-it with your platform's mechanism (Vault, ExternalSecrets) or manually:
+## 1. Configure the documentation source
+Copy `values-production.yaml` to `values-production.local.yaml` and set
+`config.gitUrl`, `config.gitBranch`, `config.mkdocsConfig`, `config.baseUrl`,
+and `route.host` there. The local file is ignored by Git. The checked-in values
+are examples and must not contain private deployment addresses or credentials.
+
+MCP clients do not need a token when `secrets.authMode=none`. If the docs Git
+repository is private, set `secrets.existingSecret` to an externally managed
+Secret containing only a read-only Git token. For example:
 
 ```bash
-oc -n docs-mcp create secret generic mkdocs-mcp-auth \
-  --from-literal=MKDOCS_MCP_AUTH_MODE=bearer \
-  --from-literal=MKDOCS_MCP_GIT_TOKEN=<repo-read-token> \
-  --from-literal=MKDOCS_MCP_BEARER_TOKENS=<token1>,<token2> \
-  --from-literal=MKDOCS_MCP_ADMIN_TOKENS=<admin-token>
+oc -n docs-mcp create secret generic mkdocs-mcp-git \
+  --from-literal=MKDOCS_MCP_GIT_TOKEN=<repo-read-token>
 ```
 
-For staging the chart can create the secret for you via `secrets.*` values.
+For a public Git repository, leave `secrets.existingSecret` empty. The chart
+creates a Secret with an empty Git token.
 
 ## 2. Install / upgrade
 ```bash
@@ -30,12 +34,12 @@ helm upgrade --install mkdocs-mcp charts/mkdocs-mcp \
   -n docs-mcp-staging --create-namespace \
   -f charts/mkdocs-mcp/values-staging.yaml \
   --set image.tag=$(git rev-parse --short HEAD) \
-  --set config.gitUrl=https://gitlab.example.com/org/docs.git \
+  --set config.gitUrl=https://git.example.com/team/docs.git \
   --set config.baseUrl=https://docs.example.com
 
 helm upgrade --install mkdocs-mcp charts/mkdocs-mcp \
   -n docs-mcp --create-namespace \
-  -f charts/mkdocs-mcp/values-production.yaml \
+  -f charts/mkdocs-mcp/values-production.local.yaml \
   --set image.tag=$(git rev-parse --short HEAD)
 ```
 
@@ -51,8 +55,7 @@ curl -fsS https://<route-host>/ready
 ```json
 { "mcpServers": { "mkdocs-docs": {
   "type": "http",
-  "url": "https://<route-host>/mcp",
-  "headers": { "Authorization": "Bearer <token>" } } } }
+  "url": "https://<route-host>/mcp" } } }
 ```
 
 ## Operational notes
@@ -66,9 +69,8 @@ curl -fsS https://<route-host>/ready
 - **Security**: non-root, read-only rootfs (writable `/data` + `/tmp` only),
   dropped caps, `NetworkPolicy` limiting egress to DNS + HTTPS. OpenShift
   assigns the UID via SCC — do not set `runAsUser`.
-- **Auth**: static bearer tokens by default (FastMCP `StaticTokenVerifier`).
-  Swap in JWT or an OAuth provider (Keycloak/GitHub/Google/…) by changing
-  `auth.build_verifier` — no tool changes required.
+- **Auth**: public MCP access is the chart default. Set `secrets.authMode=bearer`
+  and provide bearer tokens if your deployment needs client authentication.
 - **Topics**: customize the topic taxonomy with `MKDOCS_MCP_TOPICS_FILE`
   pointing at a mounted YAML, and pick the convenience aliases via
   `MKDOCS_MCP_FEATURED_TOPICS`.
@@ -77,7 +79,7 @@ curl -fsS https://<route-host>/ready
 | Symptom | Check |
 |---|---|
 | Pod not ready | `oc logs` — git clone failing? token / egress? |
-| `401` from `/mcp` | token not in `MKDOCS_MCP_BEARER_TOKENS` |
-| `rebuild_index` → permission error | token not in `MKDOCS_MCP_ADMIN_TOKENS` |
+| `401` from `/mcp` | bearer mode enabled and token not in `MKDOCS_MCP_BEARER_TOKENS` |
+| `rebuild_index` → permission error | bearer mode enabled and token not in `MKDOCS_MCP_ADMIN_TOKENS` |
 | Empty results | wrong `MKDOCS_MCP_MKDOCS_CONFIG` / branch; check `get_statistics` |
 | Wrong links | `MKDOCS_MCP_BASE_URL` does not match the published site |

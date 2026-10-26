@@ -2,7 +2,7 @@
 replicaCount: 2
 
 image:
-  repository: registry.example.com/mkdocs-mcp
+  repository: ghcr.io/ehsanmsb/mkdocs-mcp
   tag: ""              # defaults to .Chart.AppVersion
   pullPolicy: IfNotPresent
 
@@ -36,7 +36,7 @@ config:
 
 # --- secrets (-> Secret). Prefer ExternalSecret in real clusters. --------
 secrets:
-  authMode: bearer                        # none | bearer
+  authMode: none                          # none | bearer
   gitToken: ""                            # for private repo clone
   bearerTokens: ""                        # comma-separated
   adminTokens: ""                         # comma-separated (rebuild_index)

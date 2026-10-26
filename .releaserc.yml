@@ -56,22 +56,13 @@ plugins:
         rm -rf dist
         python -m build
         helm package charts/mkdocs-mcp --version "$version" --app-version "$version" --destination dist
-      publishCmd: |
-        set -eu
-        version="${nextRelease.version}"
         major_minor="$(printf '%s' "$version" | awk -F. '{print $1 "." $2}')"
-
-        docker buildx build \
-          --push \
-          --label "org.opencontainers.image.title=mkdocs-mcp" \
-          --label "org.opencontainers.image.source=https://github.com/$GITHUB_REPOSITORY" \
-          --label "org.opencontainers.image.revision=$GITHUB_SHA" \
-          --label "org.opencontainers.image.version=$version" \
+        : "$IMAGE_NAME" "$IMAGE_DIGEST"
+        docker buildx imagetools create \
           --tag "$IMAGE_NAME:$version" \
           --tag "$IMAGE_NAME:$major_minor" \
-          --tag "$IMAGE_NAME:sha-$GITHUB_SHA" \
           --tag "$IMAGE_NAME:latest" \
-          .
+          "$IMAGE_NAME@$IMAGE_DIGEST"
   - - "@semantic-release/github"
     - assets:
         - path: dist/*

@@ -1,6 +1,6 @@
 # MkDocs MCP Server
 
-[![Run Tests](https://github.com/ehsanmsb/mkdocs-mcp/actions/workflows/ci.yml/badge.svg)](https://github.com/ehsanmsb/mkdocs-mcp/actions/workflows/ci.yml)
+[![Build and Release](https://github.com/ehsanmsb/mkdocs-mcp/actions/workflows/release.yml/badge.svg)](https://github.com/ehsanmsb/mkdocs-mcp/actions/workflows/release.yml)
 [![Release](https://github.com/ehsanmsb/mkdocs-mcp/actions/workflows/release.yml/badge.svg)](https://github.com/ehsanmsb/mkdocs-mcp/actions/workflows/release.yml)
 [![GitHub release (latest by date)](https://img.shields.io/github/v/release/ehsanmsb/mkdocs-mcp)](https://github.com/ehsanmsb/mkdocs-mcp/releases)
 [![GHCR image](https://img.shields.io/badge/ghcr.io-mkdocs--mcp-blue)](https://github.com/ehsanmsb/mkdocs-mcp/pkgs/container/mkdocs-mcp)
@@ -41,6 +41,16 @@ mkdocs-mcp        # serves http://0.0.0.0:8000/mcp
 
 Health: `GET /health`, readiness: `GET /ready`, metrics: `:9000/metrics`.
 
+## Production configuration
+
+Copy `charts/mkdocs-mcp/values-production.yaml` to the Git-ignored
+`charts/mkdocs-mcp/values-production.local.yaml`, then set your documentation
+repository, MkDocs config path, published site URL, and MCP hostname there.
+The example allows MCP clients to connect without authentication. If the
+documentation repository is private, provide a read-only
+`MKDOCS_MCP_GIT_TOKEN` through a Kubernetes Secret; never add it to the values
+file.
+
 ## Connect from Claude CLI (HTTP)
 
 ```json
@@ -48,8 +58,7 @@ Health: `GET /health`, readiness: `GET /ready`, metrics: `:9000/metrics`.
   "mcpServers": {
     "mkdocs-docs": {
       "type": "http",
-      "url": "https://mkdocs-mcp.example.com/mcp",
-      "headers": { "Authorization": "Bearer <token>" }
+      "url": "https://docs-mcp.example.com/mcp"
     }
   }
 }
@@ -69,7 +78,7 @@ All settings are env vars prefixed `MKDOCS_MCP_` (see `src/mkdocs_mcp/config.py`
 | `MKDOCS_MCP_TOPICS_FILE` | — | YAML topic taxonomy (else vendor-neutral default) |
 | `MKDOCS_MCP_FEATURED_TOPICS` | k8s/argocd/terraform/vault/gitlab | topics that get a `find_<topic>_docs` alias |
 | `MKDOCS_MCP_EMBEDDINGS_ENABLED` | `false` | needs the `vectors` extra |
-| `MKDOCS_MCP_AUTH_MODE` | `bearer` | `none` \| `bearer` |
+| `MKDOCS_MCP_AUTH_MODE` | `none` | `none` \| `bearer` |
 | `MKDOCS_MCP_BEARER_TOKENS` / `_ADMIN_TOKENS` | — | comma-separated |
 | `MKDOCS_MCP_REINDEX_INTERVAL_MINUTES` | `30` | `0` disables |
 
@@ -134,11 +143,13 @@ automatically, builds Python and Helm package artifacts, publishes a GitHub
 release with generated release notes, and pushes a GHCR image. The tag starts
 with `v` (for example, `v1.2.3`).
 
-The release image is published to `ghcr.io/<owner>/<repo>` with these tags:
+Every successful push to `main` publishes `main` and `sha-<commit-sha>` image
+tags. A `feat:`, `fix:`, or `perf:` commit also creates a semantic version,
+GitHub release, and versioned Python and Helm artifacts. Semantic release
+tags the same tested image as follows:
 
 - `<version>` such as `1.2.3`
 - `<major>.<minor>` such as `1.2`
-- `sha-<commit-sha>`
 - `latest`
 
 Release notes are grouped into:

@@ -2,6 +2,7 @@
 __pycache__/
 *.pyc
 .env
+charts/mkdocs-mcp/values-*.local.yaml
 *.log
 .pytest_cache/
 .ruff_cache/

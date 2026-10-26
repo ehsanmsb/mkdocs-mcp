@@ -29,7 +29,7 @@ def build_verifier(cfg: Settings) -> StaticTokenVerifier | None:
     for tok in cfg.admin_token_set:
         tokens[tok] = {"client_id": "admin", "scopes": [READ_SCOPE, ADMIN_SCOPE]}
     if not tokens:
-        return None
+        raise ValueError("bearer auth requires at least one bearer or admin token")
     return StaticTokenVerifier(tokens=tokens)
 
 

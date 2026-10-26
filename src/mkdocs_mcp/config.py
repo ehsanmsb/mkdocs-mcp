@@ -99,7 +99,7 @@ class Settings(BaseSettings):
     # ---- Auth ----------------------------------------------------------
     # none   -> open (local dev only)
     # bearer -> static bearer token(s) via FastMCP StaticTokenVerifier
-    auth_mode: Literal["none", "bearer"] = "bearer"
+    auth_mode: Literal["none", "bearer"] = "none"
     bearer_tokens: str = ""  # comma-separated; normal scope
     admin_tokens: str = ""  # comma-separated; admin scope (rebuild_index)
 

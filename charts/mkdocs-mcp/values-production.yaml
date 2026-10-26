@@ -1,13 +1,24 @@
 replicaCount: 3
 
+image:
+  repository: ghcr.io/ehsanmsb/mkdocs-mcp
+
 config:
+  serverName: MkDocs Docs
+  sourceMode: git
+  gitUrl: https://git.example.com/team/docs.git
+  gitBranch: main
+  gitUsername: oauth2
+  mkdocsConfig: mkdocs.yml
+  docsSubdir: docs
   baseUrl: https://docs.example.com
-  mkdocsConfig: mkdocs.production.yaml
+  repoWebUrl: https://git.example.com/team/docs
+  editBranch: main
   reindexIntervalMinutes: 30
   logLevel: INFO
 
 route:
-  host: mkdocs-mcp.apps.example.com
+  host: docs-mcp.example.com
 
 autoscaling:
   enabled: true
@@ -18,6 +29,8 @@ podDisruptionBudget:
   enabled: true
   minAvailable: 2
 
-# Use an externally managed secret in production (Vault / ExternalSecrets).
+# Public MCP access. Set an external secret only when the docs repo needs a
+# read-only Git token; do not commit that token to this file.
 secrets:
-  existingSecret: mkdocs-mcp-auth
+  authMode: none
+  existingSecret: ""
