@@ -14,7 +14,7 @@ repository or require MCP client authentication.
 
 ## Quick start
 
-Requires Python 3.12+ and `uv`. Python 3.14 is used for the Docker image.
+Requires Python 3.14 and `uv`.
 
 ```bash
 uv sync --locked --python 3.14

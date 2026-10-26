@@ -5,7 +5,7 @@ for maintainers and easy to review.
 
 ## Development Setup
 
-Use Python 3.14 for local development. CI also tests Python 3.12.
+Use Python 3.14 for local development and CI.
 
 ```bash
 uv sync --locked --extra dev --python 3.14

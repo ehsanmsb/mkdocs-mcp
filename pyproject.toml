@@ -3,13 +3,12 @@ name = "mkdocs-mcp"
 version = "0.1.0"
 description = "Generic, configurable MCP server that makes any MkDocs documentation site searchable and explorable from MCP clients."
 readme = "README.md"
-requires-python = ">=3.12"
+requires-python = ">=3.14,<3.15"
 license = { text = "MIT" }
 license-files = ["LICENSE"]
 classifiers = [
     "License :: OSI Approved :: MIT License",
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.14",
 ]
 dependencies = [
@@ -50,11 +49,11 @@ testpaths = ["tests"]
 
 [tool.ruff]
 line-length = 100
-target-version = "py312"
+target-version = "py314"
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "UP", "B", "SIM"]
 
 [tool.mypy]
-python_version = "3.12"
+python_version = "3.14"
 ignore_missing_imports = true

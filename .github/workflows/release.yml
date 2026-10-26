@@ -16,20 +16,17 @@ concurrency:
 
 jobs:
   test:
-    name: Test Python ${{ matrix.python-version }}
+    name: Test Python 3.14
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        python-version: ["3.12", "3.14"]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
-          python-version: ${{ matrix.python-version }}
+          python-version: "3.14"
       - name: Install uv
         run: pip install --no-cache-dir uv==0.11.23
       - name: Install project
-        run: uv sync --locked --extra dev --python "${{ matrix.python-version }}"
+        run: uv sync --locked --extra dev --python 3.14
       - name: Lint and test
         run: |
           .venv/bin/ruff check src tests
@@ -37,14 +34,12 @@ jobs:
           .venv/bin/mypy src/mkdocs_mcp
           .venv/bin/pytest -q
       - uses: azure/setup-helm@v4
-        if: matrix.python-version == '3.14'
       - name: Check Helm chart
-        if: matrix.python-version == '3.14'
         run: |
           helm lint charts/mkdocs-mcp
           helm template mkdocs-mcp charts/mkdocs-mcp -f charts/mkdocs-mcp/values-production.yaml > /dev/null
       - name: Check Docker build on pull requests
-        if: github.event_name == 'pull_request' && matrix.python-version == '3.14'
+        if: github.event_name == 'pull_request'
         run: docker build --tag mkdocs-mcp:ci .
 
   release:

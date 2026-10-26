@@ -93,7 +93,7 @@ body:
     id: python_version
     attributes:
       label: Python version
-      placeholder: "3.12"
+      placeholder: "3.14"
 
   - type: input
     id: deployment
