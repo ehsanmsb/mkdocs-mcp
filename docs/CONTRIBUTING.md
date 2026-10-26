@@ -57,44 +57,15 @@ customer documentation content in issues, pull requests, tests, or fixtures.
 
 ## Commit Messages
 
-This repository uses Conventional Commits and semantic-release.
-
-Common commit types:
-
-- `feat:` for new user-facing capability
-- `fix:` for bug fixes
-- `perf:` for performance improvements
-- `refactor:` for internal restructuring without a behavior change
-- `docs:` for documentation-only changes
-- `test:` for test-only changes
-- `ci:` for workflow changes
-- `chore:` for maintenance
-
-Version impact:
-
-- `feat:` creates a minor release
-- `fix:` and `perf:` create a patch release
-- `feat!:` or a `BREAKING CHANGE:` footer creates a major release
-- `docs:`, `test:`, `ci:`, `chore:`, and `refactor:` do not create a release unless they include a breaking change
-
-Examples:
+Use Conventional Commits. Examples:
 
 ```text
 feat: add search index source adapter
 fix: handle pages without title metadata
-perf: reduce BM25 index rebuild allocations
-ci: add semantic release workflow
 feat!: rename source configuration variables
 ```
 
-## Release Flow
-
-Merging conventional commits into `main` triggers the release workflow. When a
-release is required, semantic-release calculates the next version, creates a
-`vX.Y.Z` tag, builds Python and Helm package artifacts, publishes a GitHub
-release, and pushes GHCR image tags.
-
-Do not manually edit release tags for normal releases.
+See [Releases and versioning](RELEASES.md) for version impact and image tags.
 
 ## Project Areas
 
