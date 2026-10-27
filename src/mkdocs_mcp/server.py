@@ -51,7 +51,8 @@ def build_server(cfg: Settings | None = None) -> tuple[FastMCP, AppContext]:
             "Search the documentation with search_docs. Use search_section to narrow "
             "a result, get_page to read it, and find_runbooks or find_examples when "
             "needed. For questions in another language, search using relevant terms "
-            "from the documentation's language. Cite returned page URLs."
+            "from the documentation's language. Results identify their site; use the "
+            "site filter when needed. Cite returned page URLs."
         ),
     )
 
@@ -80,8 +81,12 @@ def build_server(cfg: Settings | None = None) -> tuple[FastMCP, AppContext]:
     @mcp.custom_route("/readyz", methods=["GET"])
     async def ready(_request: Request) -> JSONResponse:
         loaded = ctx.store.is_loaded
+        failed = ctx.indexer.failed_sites
         return JSONResponse(
-            {"status": "ok" if loaded else "starting", "index_loaded": loaded},
+            {
+                "status": "degraded" if loaded and failed else "ok" if loaded else "starting",
+                "index_loaded": loaded,
+            },
             status_code=200 if loaded else 503,
         )
 

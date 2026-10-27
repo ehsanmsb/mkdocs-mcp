@@ -33,6 +33,17 @@ Opening `/` in a browser shows the server status and MCP connection URL.
 Opening `/mcp` in a browser shows the same page; MCP clients continue to use
 `/mcp` for protocol requests.
 
+To search several MkDocs sites through one endpoint, set `MKDOCS_MCP_SITES` to
+a JSON list of site names and published URLs. Search results identify their
+site and keep links to the original pages:
+
+```bash
+export MKDOCS_MCP_SITES='[{"name":"atlas","base_url":"https://atlas.example.com"},{"name":"team","base_url":"https://team.example.com"}]'
+```
+
+The server searches all configured sites with one BM25 index. A site that
+fails to refresh keeps its last good content; other sites remain searchable.
+
 For MCP clients that use an `mcpServers` JSON configuration:
 
 ```json

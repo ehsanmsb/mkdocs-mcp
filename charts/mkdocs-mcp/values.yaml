@@ -16,6 +16,7 @@ config:
   host: 0.0.0.0
   port: 8000
   searchIndexUrl: ""                       # defaults to baseUrl/search/search_index.json
+  sites: []                                # [{name: team, base_url: https://docs.example.com}]
   baseUrl: https://docs.example.com
   reindexIntervalMinutes: 30
   rateLimitEnabled: true

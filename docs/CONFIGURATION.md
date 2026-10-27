@@ -10,6 +10,7 @@ environment variables or placed in a local `.env` file. Their defaults match
 | --- | --- | --- |
 | `MKDOCS_MCP_BASE_URL` | `http://localhost:8000` | **Set for your site.** This is the documentation URL, used for links and the default search index URL. It is not the MCP server URL. |
 | `MKDOCS_MCP_SEARCH_INDEX_URL` | empty | Only when the published index is at another URL. Empty uses `<base-url>/search/search_index.json`. |
+| `MKDOCS_MCP_SITES` | `[]` | JSON list of `{name, base_url, search_index_url?}` objects. When nonempty, it replaces the single-site `BASE_URL` and `SEARCH_INDEX_URL` settings. Names must be unique lowercase slugs. |
 | `MKDOCS_MCP_REINDEX_INTERVAL_MINUTES` | `30` | Change how often the server checks for a new index. `0` disables periodic checks, but startup still loads it. HTTP `304` keeps the current index; refresh errors keep the last good index. |
 | `MKDOCS_MCP_SERVER_NAME` | `MkDocs Docs` | Change the name shown to MCP clients. |
 | `MKDOCS_MCP_HOST` | `0.0.0.0` | Change the listening interface; use `127.0.0.1` to allow local connections only. |
@@ -25,14 +26,34 @@ The server exposes `/health` and `/ready` on its HTTP port. `/ready` succeeds
 only after the index has loaded. MCP clients connect without authentication,
 so control access through the network where you deploy it.
 
+For multiple sites, use the same list in an environment variable or Helm:
+
+```yaml
+config:
+  sites:
+    - name: atlas
+      base_url: https://atlas.example.com
+    - name: team
+      base_url: https://team.example.com
+      # search_index_url: https://team.example.com/custom/search_index.json
+```
+
+Each site must publish a readable search index. Names must be unique and use
+lowercase letters, digits, hyphens, or underscores. Page IDs include the site
+name, for example `atlas:guides/install`. When at least one site loads, the
+server becomes ready; a failed site is reported by `health_check` and `/ready`
+as degraded. Later refresh failures keep that site's last good content. If no
+site loads at startup, the server cannot start.
+
 ## Helm chart
 
 The chart maps application settings from `config` in
 [`values.yaml`](../charts/mkdocs-mcp/values.yaml) to environment variables.
-Set `config.baseUrl` to the published site's root. Leave
-`config.searchIndexUrl` empty for the standard MkDocs location; override it only
-for a custom location. The chart fixes the application ports at `8000` and
-`9000`, matching its container and Service configuration. Every application
+For one site, set `config.baseUrl` to the published site's root and leave
+`config.searchIndexUrl` empty for the standard MkDocs location. For several
+sites, set `config.sites`; the single-site URLs are then ignored. The chart
+fixes the application ports at `8000` and `9000`, matching its container and
+Service configuration. Every application
 environment variable has a value in the chart:
 
 | Environment variable | Helm value |
@@ -41,6 +62,7 @@ environment variable has a value in the chart:
 | `MKDOCS_MCP_HOST` | `config.host` |
 | `MKDOCS_MCP_PORT` | `config.port` |
 | `MKDOCS_MCP_SEARCH_INDEX_URL` | `config.searchIndexUrl` |
+| `MKDOCS_MCP_SITES` | `config.sites` (JSON encoded) |
 | `MKDOCS_MCP_BASE_URL` | `config.baseUrl` |
 | `MKDOCS_MCP_REINDEX_INTERVAL_MINUTES` | `config.reindexIntervalMinutes` |
 | `MKDOCS_MCP_RATE_LIMIT_ENABLED` | `config.rateLimitEnabled` |

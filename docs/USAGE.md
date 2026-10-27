@@ -13,6 +13,14 @@ Start with `search_docs`, then pass a returned `page_id` to `get_page` or
 `summarize_page` supplies text and an outline to the MCP client; the server
 itself does not run a language model.
 
+With multiple sites configured, `search_docs` ranks all sections in one corpus.
+Each hit includes its site name and a page ID such as `atlas:guides/install`.
+Pass that ID to `get_page` or `search_section`; use the optional `site` filter
+to search only one site. `health_check` lists sites that failed their latest
+refresh, and `get_statistics.by_site` reports page counts. The last good
+content from a failed site remains searchable. Broad queries can mix results
+from several sites; set `site` when the intended documentation is known.
+
 Search uses BM25 keyword matching over sections in the published MkDocs
 `search_index.json`. Page titles and headings get extra weight. No-match
 queries return an empty list rather than a fabricated result. For questions in
@@ -21,7 +29,8 @@ language.
 
 The server checks the published index periodically using HTTP `ETag` or
 `Last-Modified` when available. It holds the parsed corpus and search index in
-process memory; each replica keeps its own copy. No Git clone, persistent
+process memory; each replica keeps its own copy. Memory use grows with the
+combined size of the configured sites. No Git clone, persistent
 volume, or documentation pipeline job is required.
 
 `get_page` returns text reconstructed from the search index and a link to the

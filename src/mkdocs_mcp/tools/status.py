@@ -14,11 +14,13 @@ def register(mcp: FastMCP, ctx: AppContext) -> None:
         """Report server health and index age."""
         store = ctx.store
         return HealthStatus(
-            status="ok" if store.is_loaded else "degraded",
+            status="ok" if store.is_loaded and not ctx.indexer.failed_sites else "degraded",
             index_loaded=store.is_loaded,
             index_age_seconds=store.index_age_seconds(),
             pages=len(store.documents),
             sections=len(store.sections),
+            loaded_sites=list(ctx.indexer.corpora),
+            failed_sites=ctx.indexer.failed_sites,
         )
 
     @mcp.tool

@@ -15,6 +15,7 @@ from ..context import AppContext
 
 class PageOutline(BaseModel):
     page_id: str
+    site: str = ""
     title: str
     url: str
     headings: list[str]
@@ -34,6 +35,7 @@ def register(mcp: FastMCP, ctx: AppContext) -> None:
         sections = [{"heading": s.heading, "text": s.text} for s in ctx.store.sections_of(page_id)]
         return PageOutline(
             page_id=d.page_id,
+            site=d.site,
             title=d.title,
             url=d.url,
             headings=d.headings,

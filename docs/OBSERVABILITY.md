@@ -7,12 +7,16 @@ index checks.
 
 | Event | Level | Useful fields |
 | --- | --- | --- |
-| `index_updated` | INFO | `pages`, `sections`, `duration_ms` |
+| `index_updated` | INFO | `pages`, `sections`, `sites_loaded`, `sites_failed`, `duration_ms` |
+| `site_refresh_failed` | ERROR | `site`, `error_type`, `error` |
 | `index_refresh_failed` | ERROR | `error_type`, `error`, `retained_pages` |
 | `tool_failed` | ERROR | `tool`, `error_type`, `error`, `duration_ms` |
 
-An index refresh failure keeps the last good index. A failure during startup
-prevents the pod from becoming ready. Error messages are capped at 240 characters.
+An index refresh failure keeps the last good content for that site. The server
+can start when at least one configured site loads; `health_check` reports
+`loaded_sites` and `failed_sites`, and returns `degraded` while a source is
+failing. If every site fails at startup, the pod cannot become ready. Error
+messages are capped at 240 characters.
 The middleware does not log request payloads, though an exception message can
 contain input supplied by a caller.
 
