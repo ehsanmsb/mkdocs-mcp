@@ -5,7 +5,9 @@ metadata:
   name: {{ include "mkdocs-mcp.fullname" . }}
   labels: {{- include "mkdocs-mcp.labels" . | nindent 4 }}
 spec:
-  host: {{ .Values.route.host }}
+  {{- with .Values.route.host }}
+  host: {{ . | quote }}
+  {{- end }}
   to:
     kind: Service
     name: {{ include "mkdocs-mcp.fullname" . }}

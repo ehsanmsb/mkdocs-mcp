@@ -15,6 +15,8 @@ plugins:
           release: patch
         - type: perf
           release: patch
+        - type: "*"
+          release: patch
   - - "@semantic-release/release-notes-generator"
     - preset: conventionalcommits
       presetConfig:
@@ -52,17 +54,26 @@ plugins:
         set -eu
         version="${nextRelease.version}"
 
-        python -c "import re; from pathlib import Path; p = Path('pyproject.toml'); s = p.read_text(); p.write_text(re.sub(r'^version = \".*\"', 'version = \"$version\"', s, count=1, flags=re.M))"
+        python scripts/set_release_version.py "$version"
         rm -rf dist
         python -m build
-        helm package charts/mkdocs-mcp --version "$version" --app-version "$version" --destination dist
+        helm package charts/mkdocs-mcp --destination dist
         major_minor="$(printf '%s' "$version" | awk -F. '{print $1 "." $2}')"
-        : "$IMAGE_NAME" "$IMAGE_DIGEST"
-        docker buildx imagetools create \
+        : "$IMAGE_NAME"
+        docker buildx build --platform linux/amd64 --push \
           --tag "$IMAGE_NAME:$version" \
           --tag "$IMAGE_NAME:$major_minor" \
           --tag "$IMAGE_NAME:latest" \
-          "$IMAGE_NAME@$IMAGE_DIGEST"
+          --tag "$IMAGE_NAME:main" \
+          --label "org.opencontainers.image.version=$version" \
+          --label "org.opencontainers.image.source=https://github.com/$GITHUB_REPOSITORY" \
+          .
+  - - "@semantic-release/git"
+    - assets:
+        - charts/mkdocs-mcp/Chart.yaml
+        - pyproject.toml
+        - uv.lock
+      message: "chore(release): ${nextRelease.version} [skip ci]"
   - - "@semantic-release/github"
     - assets:
         - path: dist/*
