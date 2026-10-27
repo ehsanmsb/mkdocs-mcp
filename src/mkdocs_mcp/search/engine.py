@@ -15,6 +15,7 @@ from .bm25 import BM25Index, tokenize
 class Filters:
     doc_type: str | None = None
     page_id: str | None = None
+    site: str | None = None
 
 
 class SearchEngine:
@@ -25,7 +26,7 @@ class SearchEngine:
     def attach(self, store: IndexStore) -> None:
         """Swap in a freshly built corpus and keyword index."""
         bm25 = BM25Index()
-        bm25.build([(f"{s.page_title} {s.heading}", s.text) for s in store.sections])
+        bm25.build([(f"{s.site} {s.page_title} {s.heading}", s.text) for s in store.sections])
         self.store = store
         self.bm25 = bm25
         metrics.INDEX_PAGES.set(len(store.documents))
@@ -46,6 +47,7 @@ class SearchEngine:
             for i, section in enumerate(self.store.sections)
             if (not filters.doc_type or section.doc_type == filters.doc_type)
             and (not filters.page_id or section.page_id == filters.page_id)
+            and (not filters.site or section.site == filters.site)
         ]
         ranked = self.bm25.search(query, candidates)
 
@@ -70,6 +72,7 @@ class SearchEngine:
             hits.append(
                 SearchHit(
                     page_id=sec.page_id,
+                    site=sec.site,
                     title=sec.page_title,
                     heading=sec.heading,
                     breadcrumb=breadcrumb,

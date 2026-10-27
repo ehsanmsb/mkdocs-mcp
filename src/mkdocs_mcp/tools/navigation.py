@@ -20,6 +20,7 @@ def register(mcp: FastMCP, ctx: AppContext) -> None:
             return None
         return PageContent(
             page_id=d.page_id,
+            site=d.site,
             title=d.title,
             breadcrumb=[d.title],
             url=d.url,
@@ -39,6 +40,7 @@ def register(mcp: FastMCP, ctx: AppContext) -> None:
             if s.anchor == target or s.heading.lower() == heading.lower():
                 return SectionContent(
                     page_id=page_id,
+                    site=s.site,
                     heading=s.heading,
                     url=s.url,
                     text=s.text,
@@ -60,6 +62,7 @@ def register(mcp: FastMCP, ctx: AppContext) -> None:
             out.append(
                 PageRef(
                     page_id=d.page_id,
+                    site=d.site,
                     title=d.title,
                     url=d.url,
                     doc_type=d.doc_type,

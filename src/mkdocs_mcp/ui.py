@@ -58,14 +58,25 @@ def _page(title: str, body: str) -> str:
 
 def home_page(cfg: Settings, ctx: AppContext) -> str:
     loaded = ctx.store.is_loaded
-    status = "Ready" if loaded else "Loading documentation"
-    status_class = "" if loaded else " wait"
-    site = urlsplit(cfg.base_url)
-    docs_link = (
-        f'<a href="{escape(cfg.base_url, quote=True)}" target="_blank" rel="noopener noreferrer">'
-        "Open documentation ↗</a>"
-        if site.scheme in {"http", "https"} and site.netloc
-        else ""
+    status = (
+        "Degraded"
+        if loaded and ctx.indexer.failed_sites
+        else "Ready"
+        if loaded
+        else "Loading documentation"
+    )
+    status_class = "" if loaded and not ctx.indexer.failed_sites else " wait"
+    links = [(site.name, site.base_url) for site in cfg.sites] or [("", cfg.base_url)]
+    docs_link = "".join(
+        f'<a href="{escape(url, quote=True)}" target="_blank" rel="noopener noreferrer">'
+        f"Open {escape(name + ' ' if name else '')}documentation ↗</a>"
+        for name, url in links
+        if urlsplit(url).scheme in {"http", "https"} and urlsplit(url).netloc
+    )
+    index_label = (
+        f"{len(ctx.indexer.corpora)}/{len(cfg.sites)} published MkDocs sites"
+        if cfg.sites
+        else "Published MkDocs search index"
     )
     body = f"""
 <div class="eyebrow">Documentation · MCP</div>
@@ -74,7 +85,7 @@ def home_page(cfg: Settings, ctx: AppContext) -> str:
 No sign-in is required.</p>
 <div class="panel">
   <div class="row"><span class="status{status_class}"><span class="dot"></span>{status}</span>
-  <span class="muted">Published MkDocs search index</span></div>
+  <span class="muted">{index_label}</span></div>
   <div class="stats">
     <div class="stat"><strong>{len(ctx.store.documents)}</strong><span>Pages indexed</span></div>
     <div class="stat"><strong>{len(ctx.store.sections)}</strong>

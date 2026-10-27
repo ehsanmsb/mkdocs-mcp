@@ -12,12 +12,12 @@ from urllib.parse import urljoin
 
 from markdown_it import MarkdownIt
 
-from ..config import Settings
+from ..config import Settings, SiteConfig
 from ..models import CodeBlock, Document, Section
 from ..obs import metrics
 from ..obs.logging import get_logger
 from ..search.engine import SearchEngine
-from ..sources.base import RawPage
+from ..sources.base import RawCorpus, RawPage
 from ..sources.search_index_source import SearchIndexSource
 from .store import IndexStore
 from .text import page_id_from_relpath
@@ -39,12 +39,13 @@ def _doc_type(rel_path: str) -> str:
     return "guide"
 
 
-def _published_page(page: RawPage, cfg: Settings) -> tuple[str, list[Section], list[str], str, str]:
+def _published_page(
+    page: RawPage, base_url: str, page_id: str, site: str
+) -> tuple[str, list[Section], list[str], str, str]:
     """Map each published search entry to exactly one searchable section."""
     entries = page.published_entries
     title = entries[0][0]
-    pid = page_id_from_relpath(page.rel_path)
-    base = f"{cfg.base_url.rstrip('/')}/"
+    base = f"{base_url.rstrip('/')}/"
     page_url_ = urljoin(base, entries[0][2].split("#", 1)[0])
     doc_type = _doc_type(page.rel_path)
     headings: list[str] = []
@@ -60,7 +61,8 @@ def _published_page(page: RawPage, cfg: Settings) -> tuple[str, list[Section], l
         ]
         sections.append(
             Section(
-                page_id=pid,
+                page_id=page_id,
+                site=site,
                 page_title=title,
                 heading=label or title,
                 anchor=anchor,
@@ -77,7 +79,15 @@ class Indexer:
     def __init__(self, cfg: Settings, engine: SearchEngine) -> None:
         self.cfg = cfg
         self.engine = engine
-        self.source = SearchIndexSource(cfg)
+        self.sites = cfg.sites or [
+            SiteConfig(name="default", base_url=cfg.base_url, search_index_url=cfg.search_index_url)
+        ]
+        self.sources = {
+            site.name: SearchIndexSource(site.base_url, site.search_index_url)
+            for site in self.sites
+        }
+        self.corpora: dict[str, RawCorpus] = {}
+        self.failed_sites: list[str] = []
         self._task: asyncio.Task | None = None
 
     async def build(self) -> IndexStore:
@@ -97,32 +107,68 @@ class Indexer:
             metrics.INDEX_REFRESH_DURATION.observe(time.perf_counter() - start)
 
     async def _build(self, start: float) -> IndexStore:
-        corpus = await self.source.load()
-        if corpus is None:
-            if not self.engine.store.is_loaded:
-                raise ValueError("Search index returned 304 before initial load")
-            metrics.INDEX_REFRESH.labels(result="unchanged").inc()
+        results = await asyncio.gather(
+            *(self.sources[site.name].load() for site in self.sites), return_exceptions=True
+        )
+        corpora = self.corpora.copy()
+        updated: list[str] = []
+        failed: list[str] = []
+        for site, result in zip(self.sites, results, strict=True):
+            if isinstance(result, asyncio.CancelledError):
+                raise result
+            if isinstance(result, BaseException):
+                failed.append(site.name)
+                log.error(
+                    "site_refresh_failed",
+                    site=site.name,
+                    error_type=type(result).__name__,
+                    error=str(result)[:240],
+                )
+            elif result is not None:
+                corpora[site.name] = result
+                updated.append(site.name)
+            elif site.name not in corpora:
+                failed.append(site.name)
+                log.error("site_refresh_failed", site=site.name, error="304 without a cached index")
+        self.failed_sites = failed
+        if not corpora:
+            raise RuntimeError("No documentation sites could be loaded")
+        if failed:
+            metrics.INDEX_REFRESH.labels(result="error").inc()
+        if not updated and self.engine.store.is_loaded:
+            if not failed:
+                metrics.INDEX_REFRESH.labels(result="unchanged").inc()
             metrics.INDEX_LAST_CHECK.set(time.time())
-            log.debug("index_unchanged")
+            log.debug("index_unchanged", failed_sites=failed)
             return self.engine.store
         store = IndexStore()
-        for page in corpus.pages:
-            pid = page_id_from_relpath(page.rel_path)
-            title, sections, headings, content, published_url = _published_page(page, self.cfg)
-            first = sections[0] if sections else None
-            doc = Document(
-                page_id=pid,
-                title=title,
-                url=published_url,
-                doc_type=first.doc_type if first else "guide",
-                headings=headings,
-                content=content,
-            )
-            store.add_document(doc, sections)
+        for site in self.sites:
+            corpus = corpora.get(site.name)
+            if corpus is None:
+                continue
+            for page in corpus.pages:
+                rel_id = page_id_from_relpath(page.rel_path)
+                page_id = f"{site.name}:{rel_id}" if self.cfg.sites else rel_id
+                title, sections, headings, content, published_url = _published_page(
+                    page, site.base_url, page_id, site.name
+                )
+                first = sections[0] if sections else None
+                doc = Document(
+                    page_id=page_id,
+                    site=site.name,
+                    title=title,
+                    url=published_url,
+                    doc_type=first.doc_type if first else "guide",
+                    headings=headings,
+                    content=content,
+                )
+                store.add_document(doc, sections)
 
         store.finalize()
         self.engine.attach(store)
-        self.source.accept()
+        self.corpora = corpora
+        for name in updated:
+            self.sources[name].accept()
 
         dur = round((time.perf_counter() - start) * 1000)
         metrics.INDEX_REFRESH.labels(result="updated").inc()
@@ -133,6 +179,8 @@ class Indexer:
             "index_updated",
             pages=len(store.documents),
             sections=len(store.sections),
+            sites_loaded=len(corpora),
+            sites_failed=failed,
             duration_ms=dur,
         )
         return store

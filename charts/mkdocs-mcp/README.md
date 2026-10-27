@@ -18,6 +18,12 @@ file is ignored by Git. The checked-in values are examples and must not
 contain private deployment addresses. MCP clients do not need a token. The
 pod must be able to fetch the published search index over HTTPS.
 
+For one MCP endpoint serving several MkDocs sites, set `config.sites` to a
+list of `{name, base_url}` entries as shown in
+[configuration](../../docs/CONFIGURATION.md). Each site's search index is read
+from its own URL; `config.baseUrl` is used only when the list is empty. The
+pod needs DNS and HTTPS egress to every configured site.
+
 ## 2. Install / upgrade
 The chart in this checkout defaults to the moving `main` image. Pin
 `image.tag=sha-<commit>` for a repeatable deployment, as shown below. A
@@ -72,7 +78,7 @@ index status. A browser request to `/mcp` shows that page too; MCP clients use
 |---|---|
 | Pod not ready | `oc logs` — search index URL or HTTPS egress failing? |
 | Empty results | Check the published `search_index.json` and `get_statistics` |
-| Wrong links | `MKDOCS_MCP_BASE_URL` does not match the published site |
+| Wrong links | Check `config.baseUrl`, or each `config.sites[].base_url` in multi-site mode |
 
 See [logs and metrics](../../docs/OBSERVABILITY.md) for the available metrics
 and example dashboard and alert expressions.

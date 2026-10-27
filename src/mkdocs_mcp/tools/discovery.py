@@ -11,6 +11,7 @@ from ..models import CodeBlock, PageRef
 
 class ExampleHit(BaseModel):
     page_id: str
+    site: str = ""
     heading: str
     url: str
     code_blocks: list[CodeBlock]
@@ -28,6 +29,7 @@ def register(mcp: FastMCP, ctx: AppContext) -> None:
             out.append(
                 PageRef(
                     page_id=d.page_id,
+                    site=d.site,
                     title=d.title,
                     url=d.url,
                     doc_type=d.doc_type,
@@ -60,7 +62,13 @@ def register(mcp: FastMCP, ctx: AppContext) -> None:
             if not blocks:
                 continue
             out.append(
-                ExampleHit(page_id=s.page_id, heading=s.heading, url=s.url, code_blocks=blocks)
+                ExampleHit(
+                    page_id=s.page_id,
+                    site=s.site,
+                    heading=s.heading,
+                    url=s.url,
+                    code_blocks=blocks,
+                )
             )
             if len(out) >= limit:
                 break

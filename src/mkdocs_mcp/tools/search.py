@@ -15,17 +15,19 @@ def register(mcp: FastMCP, ctx: AppContext) -> None:
         query: str,
         doc_type: str | None = None,
         limit: int = 10,
+        site: str | None = None,
     ) -> list[SearchHit]:
-        """Search the documentation. Use this first for any "how do I…",
+        """Search all configured documentation sites. Use this first for any "how do I…",
         "where is…", or general question. For non-English questions about English
         docs, translate the important search terms into English first.
 
         Returns the most relevant sections with title, breadcrumb, a deep-link
         URL, and a snippet. Optional doc_type filter: guide, runbook,
-        tutorial, troubleshooting, or reference. Empty results mean no match.
+        tutorial, troubleshooting, or reference. Optional site filter uses a
+        configured site name. Empty results mean no match.
         """
         ctx.ensure_loaded()
-        return ctx.engine.search(query, Filters(doc_type=doc_type), limit=limit)
+        return ctx.engine.search(query, Filters(doc_type=doc_type, site=site), limit=limit)
 
     @mcp.tool
     def search_section(page_id: str, query: str, limit: int = 5) -> list[SearchHit]:

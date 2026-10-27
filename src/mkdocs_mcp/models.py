@@ -21,6 +21,7 @@ class Section(BaseModel):
     """A single heading-delimited chunk of a page — the unit of retrieval."""
 
     page_id: str  # e.g. "guides/deployment"
+    site: str = ""
     page_title: str
     heading: str  # the section heading text ("" for the page intro)
     anchor: str  # slug used in the URL fragment
@@ -34,6 +35,7 @@ class Document(BaseModel):
     """A full page."""
 
     page_id: str
+    site: str = ""
     title: str
     url: str
     doc_type: DocType = "guide"
@@ -47,6 +49,7 @@ class Document(BaseModel):
 # --------------------------------------------------------------------------- #
 class SearchHit(BaseModel):
     page_id: str
+    site: str = ""
     title: str
     heading: str
     breadcrumb: list[str]
@@ -58,6 +61,7 @@ class SearchHit(BaseModel):
 
 class PageRef(BaseModel):
     page_id: str
+    site: str = ""
     title: str
     url: str
     doc_type: DocType
@@ -65,6 +69,7 @@ class PageRef(BaseModel):
 
 class PageContent(BaseModel):
     page_id: str
+    site: str = ""
     title: str
     breadcrumb: list[str]
     url: str
@@ -75,6 +80,7 @@ class PageContent(BaseModel):
 
 class SectionContent(BaseModel):
     page_id: str
+    site: str = ""
     heading: str
     url: str
     text: str
@@ -86,6 +92,7 @@ class Statistics(BaseModel):
     pages: int
     sections: int
     by_doc_type: dict[str, int]
+    by_site: dict[str, int] = Field(default_factory=dict)
     index_built_at: str | None = None
 
 
@@ -95,3 +102,5 @@ class HealthStatus(BaseModel):
     index_age_seconds: float | None = None
     pages: int
     sections: int
+    loaded_sites: list[str] = Field(default_factory=list)
+    failed_sites: list[str] = Field(default_factory=list)

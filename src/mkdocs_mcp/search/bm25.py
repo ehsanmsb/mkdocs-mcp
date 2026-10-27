@@ -1,4 +1,4 @@
-"""Lexical search via the ``rank-bm25`` library (BM25Okapi).
+"""Lexical search via the ``rank-bm25`` library (BM25Plus).
 
 We only add the thin glue BM25 libraries leave to the caller:
   - tokenization (a trivial unicode-aware regex — heavyweight NLP tokenizers
@@ -12,7 +12,7 @@ from __future__ import annotations
 
 import re
 
-from rank_bm25 import BM25Okapi
+from rank_bm25 import BM25Plus
 
 _TOKEN = re.compile(r"\w+", re.UNICODE)
 _QUERY_FILLER = {
@@ -51,15 +51,15 @@ class BM25Index:
         self.k1 = k1
         self.b = b
         self.title_boost = max(1, title_boost)
-        self._bm25: BM25Okapi | None = None
+        self._bm25: BM25Plus | None = None
         self.n = 0
 
     def build(self, docs: list[tuple[str, str]]) -> None:
         """docs: list of (title_text, body_text), aligned with section order."""
         corpus = [tokenize(body) + tokenize(title) * self.title_boost for title, body in docs]
         self.n = len(corpus)
-        # BM25Okapi requires a non-empty corpus.
-        self._bm25 = BM25Okapi(corpus or [[""]], k1=self.k1, b=self.b)
+        # BM25Plus keeps a positive score for a matching term in tiny corpora.
+        self._bm25 = BM25Plus(corpus or [[""]], k1=self.k1, b=self.b)
 
     def search(self, query: str, candidates: list[int] | None = None) -> list[tuple[int, float]]:
         if self._bm25 is None or self.n == 0:

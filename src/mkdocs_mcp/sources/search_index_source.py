@@ -8,7 +8,6 @@ from urllib.parse import urlsplit
 
 import httpx
 
-from ..config import Settings
 from .base import RawCorpus, RawPage
 
 
@@ -81,16 +80,15 @@ def _location_to_relpath(location: str) -> str:
 
 
 class SearchIndexSource:
-    def __init__(self, cfg: Settings) -> None:
-        self.cfg = cfg
+    def __init__(self, base_url: str, search_index_url: str = "") -> None:
+        self.base_url = base_url
+        self.search_index_url = search_index_url
         self.etag: str | None = None
         self.last_modified: str | None = None
         self._pending: tuple[str | None, str | None] | None = None
 
     async def load(self) -> RawCorpus | None:
-        url = self.cfg.search_index_url or (
-            f"{self.cfg.base_url.rstrip('/')}/search/search_index.json"
-        )
+        url = self.search_index_url or (f"{self.base_url.rstrip('/')}/search/search_index.json")
         headers = {}
         if self.etag:
             headers["If-None-Match"] = self.etag

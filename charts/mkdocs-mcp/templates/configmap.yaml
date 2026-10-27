@@ -7,6 +7,7 @@ data:
   MKDOCS_MCP_HOST: {{ .Values.config.host | quote }}
   MKDOCS_MCP_PORT: {{ .Values.config.port | quote }}
   MKDOCS_MCP_SEARCH_INDEX_URL: {{ .Values.config.searchIndexUrl | quote }}
+  MKDOCS_MCP_SITES: {{ .Values.config.sites | toJson | quote }}
   MKDOCS_MCP_BASE_URL: {{ .Values.config.baseUrl | quote }}
   MKDOCS_MCP_REINDEX_INTERVAL_MINUTES: {{ .Values.config.reindexIntervalMinutes | quote }}
   MKDOCS_MCP_RATE_LIMIT_ENABLED: {{ .Values.config.rateLimitEnabled | quote }}
