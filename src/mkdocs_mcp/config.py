@@ -1,7 +1,7 @@
 """Configuration via environment variables / ConfigMap / Secret.
 
 All settings are 12-factor and typed. Every env var is prefixed ``MKDOCS_MCP_``,
-e.g. ``MKDOCS_MCP_BASE_URL=https://docs.example.com``.
+e.g. ``MKDOCS_MCP_SITES=[{"name":"docs","base_url":"https://docs.example.com"}]``.
 
 The server is generic: no organization-, site-, or project-specific values are
 hardcoded. Site-specific URLs and server identity are supplied here.
@@ -12,7 +12,7 @@ from __future__ import annotations
 import re
 from urllib.parse import urlsplit
 
-from pydantic import BaseModel, ValidationInfo, field_validator, model_validator
+from pydantic import BaseModel, Field, ValidationInfo, field_validator, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -58,12 +58,7 @@ class Settings(BaseSettings):
     port: int = 8000
 
     # ---- Source --------------------------------------------------------
-    search_index_url: str = ""  # defaults to {base_url}/search/search_index.json
-    sites: list[SiteConfig] = []  # JSON list; empty keeps the single-site settings above
-
-    # ---- Links ---------------------------------------------------------
-    # Canonical base URL used to build deep-links returned to clients.
-    base_url: str = "http://localhost:8000"
+    sites: list[SiteConfig] = Field(min_length=1)
 
     # ---- Indexing ------------------------------------------------------
     reindex_interval_minutes: int = 30
@@ -92,5 +87,5 @@ _settings: Settings | None = None
 def get_settings() -> Settings:
     global _settings
     if _settings is None:
-        _settings = Settings()
+        _settings = Settings()  # type: ignore[call-arg]  # SITES is supplied by the environment.
     return _settings

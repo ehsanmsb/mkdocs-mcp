@@ -4,9 +4,7 @@ metadata:
   name: {{ include "mkdocs-mcp.fullname" . }}
   labels: {{- include "mkdocs-mcp.labels" . | nindent 4 }}
 spec:
-  {{- if not .Values.autoscaling.enabled }}
   replicas: {{ .Values.replicaCount }}
-  {{- end }}
   selector:
     matchLabels: {{- include "mkdocs-mcp.selectorLabels" . | nindent 6 }}
   template:
@@ -19,15 +17,6 @@ spec:
       imagePullSecrets: {{- toYaml . | nindent 8 }}
       {{- end }}
       securityContext: {{- toYaml .Values.podSecurityContext | nindent 8 }}
-      {{- with .Values.affinity }}
-      affinity: {{- toYaml . | nindent 8 }}
-      {{- end }}
-      {{- with .Values.nodeSelector }}
-      nodeSelector: {{- toYaml . | nindent 8 }}
-      {{- end }}
-      {{- with .Values.tolerations }}
-      tolerations: {{- toYaml . | nindent 8 }}
-      {{- end }}
       containers:
         - name: mkdocs-mcp
           image: {{ include "mkdocs-mcp.image" . }}

@@ -13,7 +13,7 @@ Start with `search_docs`, then pass a returned `page_id` to `get_page` or
 `summarize_page` supplies text and an outline to the MCP client; the server
 itself does not run a language model.
 
-With multiple sites configured, `search_docs` ranks all sections in one corpus.
+`search_docs` ranks all configured sites in one corpus.
 Each hit includes its site name and a page ID such as `atlas:guides/install`.
 Pass that ID to `get_page` or `search_section`; use the optional `site` filter
 to search only one site. `health_check` lists sites that failed their latest

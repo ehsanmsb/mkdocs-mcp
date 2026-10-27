@@ -8,9 +8,9 @@ import pytest
 from mkdocs_mcp.search.engine import Filters
 
 GOLDEN = [
-    ("expose an http service with a hostname", "platform/networking/expose-service"),
-    ("argocd gitops continuous delivery", "platform/argocd/user-guide"),
-    ("migrate repository runbook", "platform/argocd/runbooks/migrate-repository"),
+    ("expose an http service with a hostname", "docs:platform/networking/expose-service"),
+    ("argocd gitops continuous delivery", "docs:platform/argocd/user-guide"),
+    ("migrate repository runbook", "docs:platform/argocd/runbooks/migrate-repository"),
 ]
 
 

@@ -37,7 +37,7 @@ async def test_tools_registered(client):
 async def test_search_docs_tool(client):
     async with client:
         r = await client.call_tool("search_docs", {"query": "expose http service"})
-    assert r.structured_content["result"][0]["page_id"] == "platform/networking/expose-service"
+    assert r.structured_content["result"][0]["page_id"] == "docs:platform/networking/expose-service"
 
 
 async def test_no_match_has_no_placeholder_result(client):
@@ -50,7 +50,7 @@ async def test_search_section_returns_multiple_sections_from_one_page(client):
     async with client:
         r = await client.call_tool(
             "search_section",
-            {"page_id": "platform/argocd/user-guide", "query": "argo", "limit": 5},
+            {"page_id": "docs:platform/argocd/user-guide", "query": "argo", "limit": 5},
         )
     hits = r.structured_content["result"]
     assert {"Overview", "CLI Login"} <= {hit["heading"] for hit in hits}
@@ -58,7 +58,7 @@ async def test_search_section_returns_multiple_sections_from_one_page(client):
 
 async def test_get_page_tool(client):
     async with client:
-        r = await client.call_tool("get_page", {"page_id": "platform/argocd/user-guide"})
+        r = await client.call_tool("get_page", {"page_id": "docs:platform/argocd/user-guide"})
     page = r.structured_content["result"]  # optional return wrapped under "result"
     assert page["title"].startswith("Argo")
     assert "GitOps" in page["content"]
@@ -69,7 +69,7 @@ async def test_find_runbooks(client):
     async with client:
         r = await client.call_tool("find_runbooks", {})
     ids = {p["page_id"] for p in r.structured_content["result"]}
-    assert "platform/argocd/runbooks/migrate-repository" in ids
+    assert "docs:platform/argocd/runbooks/migrate-repository" in ids
 
 
 async def test_find_examples_by_language(client):

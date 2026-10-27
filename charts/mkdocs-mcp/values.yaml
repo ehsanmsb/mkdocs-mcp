@@ -1,5 +1,5 @@
 # Default values for mkdocs-mcp.
-replicaCount: 2
+replicaCount: 1
 
 image:
   repository: ghcr.io/ehsanmsb/mkdocs-mcp
@@ -15,9 +15,9 @@ config:
   serverName: MkDocs Docs                  # surfaced to MCP clients
   host: 0.0.0.0
   port: 8000
-  searchIndexUrl: ""                       # defaults to baseUrl/search/search_index.json
-  sites: []                                # [{name: team, base_url: https://docs.example.com}]
-  baseUrl: https://docs.example.com
+  sites:
+    - name: docs
+      base_url: https://docs.example.com
   reindexIntervalMinutes: 30
   rateLimitEnabled: true
   rateLimitPerSecond: 5
@@ -40,39 +40,17 @@ route:
     termination: edge
     insecureEdgeTerminationPolicy: Redirect
 
-ingress:
-  enabled: false
-  className: ""
-  host: ""
-  annotations: {}
-  tls: []
-
 resources:
   requests:
-    cpu: 100m
-    memory: 192Mi
-  limits:
-    cpu: "1"
+    cpu: 250m
     memory: 512Mi
-
-autoscaling:
-  enabled: false
-  minReplicas: 2
-  maxReplicas: 5
-  targetCPUUtilizationPercentage: 75
-
-podDisruptionBudget:
-  enabled: true
-  minAvailable: 1
+  limits:
+    cpu: 500m
+    memory: 1Gi
 
 serviceMonitor:
   enabled: true
   interval: 30s
-
-networkPolicy:
-  enabled: true
-  # CIDRs / selectors allowed to reach the MCP port (e.g. the ingress controller).
-  ingressFrom: []
 
 # OpenShift-friendly: do NOT pin runAsUser; let the SCC assign the UID.
 podSecurityContext:
@@ -84,16 +62,3 @@ securityContext:
   readOnlyRootFilesystem: true
   capabilities:
     drop: ["ALL"]
-
-nodeSelector: {}
-tolerations: []
-# Spread replicas across nodes for HA.
-affinity:
-  podAntiAffinity:
-    preferredDuringSchedulingIgnoredDuringExecution:
-      - weight: 100
-        podAffinityTerm:
-          topologyKey: kubernetes.io/hostname
-          labelSelector:
-            matchLabels:
-              app.kubernetes.io/name: mkdocs-mcp

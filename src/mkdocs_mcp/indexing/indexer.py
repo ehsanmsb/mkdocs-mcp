@@ -12,7 +12,7 @@ from urllib.parse import urljoin
 
 from markdown_it import MarkdownIt
 
-from ..config import Settings, SiteConfig
+from ..config import Settings
 from ..models import CodeBlock, Document, Section
 from ..obs import metrics
 from ..obs.logging import get_logger
@@ -79,9 +79,7 @@ class Indexer:
     def __init__(self, cfg: Settings, engine: SearchEngine) -> None:
         self.cfg = cfg
         self.engine = engine
-        self.sites = cfg.sites or [
-            SiteConfig(name="default", base_url=cfg.base_url, search_index_url=cfg.search_index_url)
-        ]
+        self.sites = cfg.sites
         self.sources = {
             site.name: SearchIndexSource(site.base_url, site.search_index_url)
             for site in self.sites
@@ -148,7 +146,7 @@ class Indexer:
                 continue
             for page in corpus.pages:
                 rel_id = page_id_from_relpath(page.rel_path)
-                page_id = f"{site.name}:{rel_id}" if self.cfg.sites else rel_id
+                page_id = f"{site.name}:{rel_id}"
                 title, sections, headings, content, published_url = _published_page(
                     page, site.base_url, page_id, site.name
                 )
