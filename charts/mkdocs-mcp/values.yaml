@@ -3,7 +3,7 @@ replicaCount: 1
 
 image:
   repository: ghcr.io/ehsanmsb/mkdocs-mcp
-  tag: ""              # defaults to .Chart.AppVersion
+  tag: ""              # defaults to the released chart's appVersion
   pullPolicy: IfNotPresent
 
 imagePullSecrets: []
@@ -31,14 +31,21 @@ service:
   port: 8000
   metricsPort: 9000
 
-# OpenShift Route (preferred over Ingress on OKD).
+# Optional OpenShift Route. Enable it only on OpenShift.
 route:
-  enabled: true
-  host: mkdocs-mcp.apps.example.com
+  enabled: false
+  host: ""              # leave empty for an OpenShift-generated hostname
   tls:
     enabled: true
     termination: edge
     insecureEdgeTerminationPolicy: Redirect
+
+# Optional Kubernetes Ingress. Set host when enabling it.
+ingress:
+  enabled: false
+  className: ""
+  host: ""
+  tlsSecretName: ""     # leave empty when TLS terminates elsewhere
 
 resources:
   requests:
@@ -59,7 +66,7 @@ podDisruptionBudget:
   minAvailable: 1
 
 serviceMonitor:
-  enabled: true
+  enabled: false        # requires Prometheus Operator CRDs
   interval: 30s
 
 networkPolicy:

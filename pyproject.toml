@@ -1,6 +1,6 @@
 [project]
 name = "mkdocs-mcp"
-version = "0.1.0"
+version = "5.0.0"
 description = "Generic, configurable MCP server that makes any MkDocs documentation site searchable and explorable from MCP clients."
 readme = "README.md"
 requires-python = ">=3.14,<3.15"

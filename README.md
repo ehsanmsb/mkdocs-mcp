@@ -61,6 +61,6 @@ For MCP clients that use an `mcpServers` JSON configuration:
 - [Configuration and environment variables](docs/CONFIGURATION.md)
 - [Logs, metrics, dashboards, and alerts](docs/OBSERVABILITY.md)
 - [Tools, search behavior, and limitations](docs/USAGE.md)
-- [Deployment on OKD/OpenShift](charts/mkdocs-mcp/README.md)
+- [Deployment on Kubernetes and OpenShift](charts/mkdocs-mcp/README.md)
 - [Releases and versioning](docs/RELEASES.md)
 - [Contributing and tests](docs/CONTRIBUTING.md)

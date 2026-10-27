@@ -26,10 +26,11 @@ Tests use a small published search index fixture in
 Before opening a pull request, run the checks that match your change:
 
 ```bash
-ruff check src tests
-ruff format --check src tests
+ruff check src tests scripts
+ruff format --check src tests scripts
 mypy src/mkdocs_mcp
 pytest -q
+uv lock --check
 helm lint charts/mkdocs-mcp
 ```
 

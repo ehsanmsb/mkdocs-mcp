@@ -1,23 +1,19 @@
-MkDocs documentation MCP server deployed.
+MkDocs MCP is available at /mcp after the index is ready.
 
 {{- if .Values.route.enabled }}
-MCP endpoint (streamable-http):
-  https://{{ .Values.route.host }}{{ "/mcp" }}
+OpenShift Route:
+  oc -n {{ .Release.Namespace }} get route {{ include "mkdocs-mcp.fullname" . }}
+{{- else if .Values.ingress.enabled }}
+Kubernetes Ingress:
+  {{ if .Values.ingress.tlsSecretName }}https{{ else }}http{{ end }}://{{ .Values.ingress.host }}/mcp
 {{- else }}
-Service (cluster-internal):
+Cluster-internal endpoint:
   http://{{ include "mkdocs-mcp.fullname" . }}.{{ .Release.Namespace }}.svc:{{ .Values.service.port }}/mcp
+
+For local access:
+  kubectl -n {{ .Release.Namespace }} port-forward service/{{ include "mkdocs-mcp.fullname" . }} 8000:{{ .Values.service.port }}
+  Open http://localhost:8000/ in a browser.
 {{- end }}
 
-Connect from Claude CLI (.mcp.json):
-  {
-    "mcpServers": {
-      "mkdocs-docs": {
-        "type": "http",
-        "url": "{{- if .Values.route.enabled }}https://{{ .Values.route.host }}{{- else }}http://{{ include "mkdocs-mcp.fullname" . }}.{{ .Release.Namespace }}.svc:{{ .Values.service.port }}{{- end }}/mcp"
-      }
-    }
-  }
-
-Probes:   /health (live)  /ready (ready)
-Metrics:  :{{ .Values.service.metricsPort }}/metrics
-Check:    kubectl -n {{ .Release.Namespace }} rollout status deploy/{{ include "mkdocs-mcp.fullname" . }}
+Check readiness:
+  kubectl -n {{ .Release.Namespace }} rollout status deployment/{{ include "mkdocs-mcp.fullname" . }}
