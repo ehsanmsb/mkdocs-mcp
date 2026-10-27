@@ -1,69 +1,65 @@
 # Configuration
 
-The server reads the published MkDocs search index. Set the public site URL
-with `MKDOCS_MCP_BASE_URL`; the index defaults to
-`<base-url>/search/search_index.json`. All settings below can be passed as
-environment variables or placed in a local `.env` file. Their defaults match
-[`config.py`](../src/mkdocs_mcp/config.py).
+Set `MKDOCS_MCP_SITES` to a JSON list containing at least one published MkDocs
+site. Use the same setting for one site or many. Each entry needs a unique
+lowercase `name` and an absolute HTTP(S) `base_url`. The optional
+`search_index_url` points to a nonstandard index location; otherwise the server
+fetches `<base_url>/search/search_index.json`.
 
-| Variable | Default | When to set it |
+```bash
+export MKDOCS_MCP_SITES='[{"name":"docs","base_url":"https://docs.example.com"}]'
+```
+
+Add another object to the list to search more sites. Page IDs always include
+the site name, for example `docs:guides/install`. The server keeps the last good
+index for a site if a later refresh fails. Startup requires at least one site
+to load.
+
+All settings can be environment variables or entries in a local `.env` file.
+Defaults match [`config.py`](../src/mkdocs_mcp/config.py).
+
+| Variable | Default | Purpose |
 | --- | --- | --- |
-| `MKDOCS_MCP_BASE_URL` | `http://localhost:8000` | **Set for your site.** This is the documentation URL, used for links and the default search index URL. It is not the MCP server URL. |
-| `MKDOCS_MCP_SEARCH_INDEX_URL` | empty | Only when the published index is at another URL. Empty uses `<base-url>/search/search_index.json`. |
-| `MKDOCS_MCP_SITES` | `[]` | JSON list of `{name, base_url, search_index_url?}` objects. When nonempty, it replaces the single-site `BASE_URL` and `SEARCH_INDEX_URL` settings. Names must be unique lowercase slugs. |
-| `MKDOCS_MCP_REINDEX_INTERVAL_MINUTES` | `30` | Change how often the server checks for a new index. `0` disables periodic checks, but startup still loads it. HTTP `304` keeps the current index; refresh errors keep the last good index. |
-| `MKDOCS_MCP_SERVER_NAME` | `MkDocs Docs` | Change the name shown to MCP clients. |
-| `MKDOCS_MCP_HOST` | `0.0.0.0` | Change the listening interface; use `127.0.0.1` to allow local connections only. |
-| `MKDOCS_MCP_PORT` | `8000` | Change the HTTP listening port. The MCP endpoint is `/mcp`. |
-| `MKDOCS_MCP_RATE_LIMIT_ENABLED` | `true` | Turn the FastMCP request limiter on or off. This is not authentication. |
-| `MKDOCS_MCP_RATE_LIMIT_PER_SECOND` | `5.0` | Change the sustained request rate. |
-| `MKDOCS_MCP_RATE_LIMIT_BURST` | `20` | Change the short burst capacity. |
-| `MKDOCS_MCP_LOG_LEVEL` | `INFO` | Change logging detail, for example to `DEBUG` while diagnosing an issue. |
-| `MKDOCS_MCP_LOG_JSON` | `true` | Use structured JSON logs; set false for easier local reading. |
-| `MKDOCS_MCP_METRICS_ENABLED` | `true` | Enable Prometheus metrics on port `9000`; disable if unused. |
+| `MKDOCS_MCP_SITES` | Required | JSON list of `{name, base_url, search_index_url?}` objects. Names must be unique lowercase slugs. |
+| `MKDOCS_MCP_REINDEX_INTERVAL_MINUTES` | `30` | How often to check for changed indexes. `0` disables periodic checks. |
+| `MKDOCS_MCP_SERVER_NAME` | `MkDocs Docs` | Name shown to MCP clients and in the UI. |
+| `MKDOCS_MCP_HOST` | `0.0.0.0` | HTTP listening interface. Use `127.0.0.1` for local-only access. |
+| `MKDOCS_MCP_PORT` | `8000` | HTTP port; MCP endpoint is `/mcp`. |
+| `MKDOCS_MCP_RATE_LIMIT_ENABLED` | `true` | Enables the request limiter; it is not authentication. |
+| `MKDOCS_MCP_RATE_LIMIT_PER_SECOND` | `5.0` | Sustained request rate. |
+| `MKDOCS_MCP_RATE_LIMIT_BURST` | `20` | Short burst capacity. |
+| `MKDOCS_MCP_LOG_LEVEL` | `INFO` | Log detail; use `DEBUG` while diagnosing issues. |
+| `MKDOCS_MCP_LOG_JSON` | `true` | Structured JSON logs; use `false` for readable local logs. |
+| `MKDOCS_MCP_METRICS_ENABLED` | `true` | Prometheus metrics on port `9000`. |
 
-The server exposes `/health` and `/ready` on its HTTP port. `/ready` succeeds
-only after the index has loaded. MCP clients connect without authentication,
-so control access through the network where you deploy it.
+`/health` and `/ready` are served on the HTTP port. `/ready` succeeds after at
+least one index loads and reports degraded status if another site fails. MCP
+clients connect without authentication, so control access at the network layer
+if needed.
 
-For multiple sites, use the same list in an environment variable or Helm:
+## Helm chart
+
+The chart has one [`values.yaml`](../charts/mkdocs-mcp/values.yaml). Set
+`config.sites` to one or more entries:
 
 ```yaml
 config:
   sites:
-    - name: atlas
-      base_url: https://atlas.example.com
+    - name: docs
+      base_url: https://docs.example.com
     - name: team
       base_url: https://team.example.com
-      # search_index_url: https://team.example.com/custom/search_index.json
+      search_index_url: https://team.example.com/custom/search_index.json
 ```
 
-Each site must publish a readable search index. Names must be unique and use
-lowercase letters, digits, hyphens, or underscores. Page IDs include the site
-name, for example `atlas:guides/install`. When at least one site loads, the
-server becomes ready; a failed site is reported by `health_check` and `/ready`
-as degraded. Later refresh failures keep that site's last good content. If no
-site loads at startup, the server cannot start.
-
-## Helm chart
-
-The chart maps application settings from `config` in
-[`values.yaml`](../charts/mkdocs-mcp/values.yaml) to environment variables.
-For one site, set `config.baseUrl` to the published site's root and leave
-`config.searchIndexUrl` empty for the standard MkDocs location. For several
-sites, set `config.sites`; the single-site URLs are then ignored. The chart
-fixes the application ports at `8000` and `9000`, matching its container and
-Service configuration. Every application
-environment variable has a value in the chart:
+The chart maps all application settings through its ConfigMap:
 
 | Environment variable | Helm value |
 | --- | --- |
+| `MKDOCS_MCP_SITES` | `config.sites` (JSON encoded) |
 | `MKDOCS_MCP_SERVER_NAME` | `config.serverName` |
 | `MKDOCS_MCP_HOST` | `config.host` |
 | `MKDOCS_MCP_PORT` | `config.port` |
-| `MKDOCS_MCP_SEARCH_INDEX_URL` | `config.searchIndexUrl` |
-| `MKDOCS_MCP_SITES` | `config.sites` (JSON encoded) |
-| `MKDOCS_MCP_BASE_URL` | `config.baseUrl` |
 | `MKDOCS_MCP_REINDEX_INTERVAL_MINUTES` | `config.reindexIntervalMinutes` |
 | `MKDOCS_MCP_RATE_LIMIT_ENABLED` | `config.rateLimitEnabled` |
 | `MKDOCS_MCP_RATE_LIMIT_PER_SECOND` | `config.rateLimitPerSecond` |
@@ -72,7 +68,5 @@ environment variable has a value in the chart:
 | `MKDOCS_MCP_LOG_JSON` | `config.logJson` |
 | `MKDOCS_MCP_METRICS_ENABLED` | `config.metricsEnabled` |
 
-The chart uses `config.port` for the container and network policy too. Keep
-`config.host: 0.0.0.0` in Kubernetes so the Service can reach the pod. Metrics
-are exposed on the fixed port `9000`. See [logs and metrics](OBSERVABILITY.md)
-for dashboard and alert queries.
+Keep `config.host: 0.0.0.0` in Kubernetes so the Service can reach the pod.
+Metrics are exposed on port `9000`. See [logs and metrics](OBSERVABILITY.md).

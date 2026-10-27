@@ -37,7 +37,7 @@ jobs:
       - name: Check Helm chart
         run: |
           helm lint charts/mkdocs-mcp
-          helm template mkdocs-mcp charts/mkdocs-mcp -f charts/mkdocs-mcp/values-production.yaml > /dev/null
+          helm template mkdocs-mcp charts/mkdocs-mcp > /dev/null
       - name: Check Docker build on pull requests
         if: github.event_name == 'pull_request'
         run: docker build --tag mkdocs-mcp:ci .

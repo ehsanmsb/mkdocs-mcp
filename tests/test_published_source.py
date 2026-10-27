@@ -5,7 +5,7 @@ import pytest
 from fastmcp import Client, FastMCP
 from prometheus_client import REGISTRY
 
-from mkdocs_mcp.config import Settings
+from mkdocs_mcp.config import Settings, SiteConfig
 from mkdocs_mcp.context import AppContext
 from mkdocs_mcp.sources import search_index_source
 from mkdocs_mcp.tools import register_all
@@ -14,8 +14,7 @@ from mkdocs_mcp.tools import register_all
 @pytest.fixture
 def published_cfg():
     return Settings(
-        base_url="https://docs.example.com",
-        search_index_url="https://docs.example.com/search/search_index.json",
+        sites=[SiteConfig(name="docs", base_url="https://docs.example.com")],
         reindex_interval_minutes=0,
         metrics_enabled=False,
         rate_limit_enabled=False,
@@ -68,10 +67,10 @@ async def test_published_search_and_conditional_refresh(monkeypatch, published_c
     first = await ctx.indexer.build()
     assert len(first.documents) == 2
     assert len(first.sections) == 3
-    page = first.get_doc("guides/install")
+    page = first.get_doc("docs:guides/install")
     assert page.url == "https://docs.example.com/guides/install/"
     assert "apiVersion: v1" in page.content
-    section = first.sections_of("guides/install")[1]
+    section = first.sections_of("docs:guides/install")[1]
     assert section.url == "https://docs.example.com/guides/install/#run-it"
     assert section.heading == "Run it"
     assert section.code_blocks[0].language == "yaml"
@@ -82,10 +81,10 @@ async def test_published_search_and_conditional_refresh(monkeypatch, published_c
     mcp = FastMCP(name="published")
     register_all(mcp, ctx)
     async with Client(mcp) as client:
-        result = await client.call_tool("get_page", {"page_id": "guides/install"})
+        result = await client.call_tool("get_page", {"page_id": "docs:guides/install"})
         assert result.structured_content["result"]["url"] == page.url
         assert "apiVersion: v1" in result.structured_content["result"]["content"]
-        outline = await client.call_tool("summarize_page", {"page_id": "guides/install"})
+        outline = await client.call_tool("summarize_page", {"page_id": "docs:guides/install"})
         assert outline.structured_content["result"]["sections"][1]["heading"] == "Run it"
 
     second = await ctx.indexer.build()
@@ -142,7 +141,7 @@ async def test_failed_refresh_keeps_last_good_index(monkeypatch, published_cfg):
     first = await ctx.indexer.build()
     await ctx.indexer.safe_build()
     assert ctx.store is first
-    assert first.get_doc("index").url == "https://docs.example.com/"
+    assert first.get_doc("docs:index").url == "https://docs.example.com/"
     assert (
         REGISTRY.get_sample_value("mkdocs_mcp_index_refresh_total", {"result": "error"})
         == errors_before + 1

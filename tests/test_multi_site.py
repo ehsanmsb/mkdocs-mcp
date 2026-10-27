@@ -127,6 +127,12 @@ async def test_one_unavailable_site_does_not_block_startup(monkeypatch):
 
 
 def test_sites_parse_from_environment_and_reject_duplicate_names(monkeypatch):
+    monkeypatch.delenv("MKDOCS_MCP_SITES", raising=False)
+    with pytest.raises(ValidationError, match="sites"):
+        Settings(_env_file=None)
+    monkeypatch.setenv("MKDOCS_MCP_SITES", "[]")
+    with pytest.raises(ValidationError, match="at least 1"):
+        Settings(_env_file=None)
     monkeypatch.setenv(
         "MKDOCS_MCP_SITES",
         json.dumps([{"name": "atlas", "base_url": "https://atlas.example.com"}]),

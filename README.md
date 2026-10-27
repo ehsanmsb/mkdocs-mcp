@@ -19,23 +19,22 @@ Requires Python 3.14 and `uv`.
 ```bash
 uv sync --locked --python 3.14
 source .venv/bin/activate
-export MKDOCS_MCP_BASE_URL=https://docs.example.com
+export MKDOCS_MCP_SITES='[{"name":"docs","base_url":"https://docs.example.com"}]'
 mkdocs-mcp
 ```
 
-Replace the example URL with the public root of your MkDocs site. By default,
-the server fetches `<base-url>/search/search_index.json` on startup and serves
-MCP at `http://localhost:8000/mcp`. Set `MKDOCS_MCP_SEARCH_INDEX_URL` if your
-site publishes its search index elsewhere. The index must be reachable when
-the server starts.
+Replace the example URL with the public root of your MkDocs site. The server
+fetches `<base_url>/search/search_index.json` on startup and serves MCP at
+`http://localhost:8000/mcp`. If the index is elsewhere, add `search_index_url`
+to that site's object. The index must be reachable when the server starts.
 
 Opening `/` in a browser shows the server status and MCP connection URL.
 Opening `/mcp` in a browser shows the same page; MCP clients continue to use
 `/mcp` for protocol requests.
 
-To search several MkDocs sites through one endpoint, set `MKDOCS_MCP_SITES` to
-a JSON list of site names and published URLs. Search results identify their
-site and keep links to the original pages:
+To search several sites through the same endpoint, add more entries to
+`MKDOCS_MCP_SITES`. Search results identify their site and link to the original
+pages:
 
 ```bash
 export MKDOCS_MCP_SITES='[{"name":"atlas","base_url":"https://atlas.example.com"},{"name":"team","base_url":"https://team.example.com"}]'

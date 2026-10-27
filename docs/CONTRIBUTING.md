@@ -14,7 +14,7 @@ uv sync --locked --extra dev --python 3.14
 Run the server locally against a published MkDocs site:
 
 ```bash
-export MKDOCS_MCP_BASE_URL=https://docs.example.com
+export MKDOCS_MCP_SITES='[{"name":"docs","base_url":"https://docs.example.com"}]'
 mkdocs-mcp
 ```
 

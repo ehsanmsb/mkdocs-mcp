@@ -66,18 +66,14 @@ def home_page(cfg: Settings, ctx: AppContext) -> str:
         else "Loading documentation"
     )
     status_class = "" if loaded and not ctx.indexer.failed_sites else " wait"
-    links = [(site.name, site.base_url) for site in cfg.sites] or [("", cfg.base_url)]
+    links = [(site.name, site.base_url) for site in cfg.sites]
     docs_link = "".join(
         f'<a href="{escape(url, quote=True)}" target="_blank" rel="noopener noreferrer">'
         f"Open {escape(name + ' ' if name else '')}documentation ↗</a>"
         for name, url in links
         if urlsplit(url).scheme in {"http", "https"} and urlsplit(url).netloc
     )
-    index_label = (
-        f"{len(ctx.indexer.corpora)}/{len(cfg.sites)} published MkDocs sites"
-        if cfg.sites
-        else "Published MkDocs search index"
-    )
+    index_label = f"{len(ctx.indexer.corpora)}/{len(cfg.sites)} published MkDocs sites"
     body = f"""
 <div class="eyebrow">Documentation · MCP</div>
 <h1>{escape(cfg.server_name)}</h1>
