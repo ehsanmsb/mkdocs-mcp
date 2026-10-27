@@ -22,8 +22,9 @@ helm upgrade --install mkdocs-mcp charts/mkdocs-mcp \
 ```
 
 The chart defaults to one replica, with CPU request/limit of 250m/500m and
-memory request/limit of 512Mi/1Gi. It does not create an HPA, PDB, or
-NetworkPolicy. Readiness gates traffic until a documentation index has loaded.
+memory request/limit of 512Mi/1Gi. HPA, PDB, and NetworkPolicy templates are
+available but disabled by default in `values.yaml`. Readiness gates traffic
+until a documentation index has loaded.
 The container uses a non-root, read-only filesystem with writable `/tmp`.
 OpenShift assigns the UID through its SCC.
 

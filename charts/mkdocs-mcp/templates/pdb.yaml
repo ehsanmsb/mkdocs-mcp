@@ -1,0 +1,11 @@
+{{- if .Values.podDisruptionBudget.enabled }}
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: {{ include "mkdocs-mcp.fullname" . }}
+  labels: {{- include "mkdocs-mcp.labels" . | nindent 4 }}
+spec:
+  minAvailable: {{ .Values.podDisruptionBudget.minAvailable }}
+  selector:
+    matchLabels: {{- include "mkdocs-mcp.selectorLabels" . | nindent 6 }}
+{{- end }}

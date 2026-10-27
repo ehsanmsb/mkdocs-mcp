@@ -48,9 +48,23 @@ resources:
     cpu: 500m
     memory: 1Gi
 
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 3
+  targetCPUUtilizationPercentage: 75
+
+podDisruptionBudget:
+  enabled: false
+  minAvailable: 1
+
 serviceMonitor:
   enabled: true
   interval: 30s
+
+networkPolicy:
+  enabled: false
+  ingressFrom: []
 
 # OpenShift-friendly: do NOT pin runAsUser; let the SCC assign the UID.
 podSecurityContext:
